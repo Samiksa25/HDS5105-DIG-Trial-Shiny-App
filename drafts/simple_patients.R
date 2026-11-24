@@ -52,3 +52,40 @@ BP <- ggplot(dig) +
   annotate("label", x = 40, y = -300, label = "Diastolic") +
   scale_y_continuous(labels = abs)
 BP
+
+dig$race <- factor(dig$RACE, levels = c(1, 2), labels = c("White", "Non-white"))
+Race <- ggplot(dig, aes(x = race, fill = group)) +
+  geom_bar(position = "dodge", color = "#e9ecef", width = 0.4) +
+  coord_flip() +
+  scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+  theme_ipsum() + theme(legend.position = "bottom") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  labs(title = "Ethnic background of the patients",
+       x = "",
+       y = "Number of patients",
+       fill = "")
+Race
+
+library(tidyr)
+history <- dig %>%
+  group_by(group) %>%
+  summarise(
+    `Prior heart attack`  = mean(PREVMI,   na.rm = TRUE) * 100,
+    `Angina`              = mean(ANGINA,   na.rm = TRUE) * 100,
+    `Diabetes`            = mean(DIABETES, na.rm = TRUE) * 100,
+    `High blood pressure` = mean(HYPERTEN, na.rm = TRUE) * 100
+  )
+history_long <- history %>%
+  pivot_longer(cols = -group, names_to = "condition", values_to = "percent")
+History <- ggplot(history_long, aes(x = reorder(condition, percent), y = percent, fill = group)) +
+  geom_col(position = "dodge", color = "#e9ecef", width = 0.4) +
+  coord_flip() +
+  scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+  theme_ipsum() +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(reverse = TRUE)) +
+  labs(title = "Medical history of the patients",
+       x = "",
+       y = "Percentage of patients (%)",
+       fill = "")
+History
