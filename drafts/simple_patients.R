@@ -6,6 +6,7 @@ dig <- read.csv("Data/DIG-1.csv")
 # head(dig)
 # summary(dig$AGE)
 dig$group <- factor(dig$TRTMT, levels = c(0, 1), labels = c("Placebo", "Digoxin"))
+
 Age <- dig %>%
   ggplot( aes(x=AGE, fill=group)) +
   geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity') +
@@ -77,6 +78,7 @@ history <- dig %>%
   )
 history_long <- history %>%
   pivot_longer(cols = -group, names_to = "condition", values_to = "percent")
+
 History <- ggplot(history_long, aes(x = reorder(condition, percent), y = percent, fill = group)) +
   geom_col(position = "dodge", color = "#e9ecef", width = 0.4) +
   coord_flip() +

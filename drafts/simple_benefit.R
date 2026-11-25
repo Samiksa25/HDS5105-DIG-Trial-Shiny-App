@@ -7,6 +7,7 @@ dig <- read.csv("Data/DIG-1.csv")
 dig$group <- factor(dig$TRTMT, levels = c(0, 1), labels = c("Placebo", "Digoxin"))
 dig$age_group <- cut(dig$AGE, breaks = c(0, 60, 70, 100), labels = c("Under 60", "60–70", "Over 70"), right = FALSE)
 dig$diabetes <- factor(dig$DIABETES, levels = c(0, 1), labels = c("No diabetes", "Diabetes"))
+
 benefit <- dig %>%
   group_by(age_group, group) %>%
   summarise(percent = mean(DWHF, na.rm = TRUE) * 100, .groups = "drop")
