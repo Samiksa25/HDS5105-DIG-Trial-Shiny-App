@@ -49,3 +49,4 @@ table(DIG_clean$DEATH_label)
 
 # Check treatment and hospitalisation
 table(DIG_clean$TRTMT_label, DIG_clean$HOSP_label)
+
