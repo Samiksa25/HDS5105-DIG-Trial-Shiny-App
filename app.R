@@ -38,6 +38,9 @@ ui <- page_navbar(
   nav_panel(title = "Patients", selectInput(inputId = "patient_chart", label = "What would you like to see?", choices = c("Age", "BMI", "Heart rate", "Blood pressure", "Race", "Medical history")), plotOutput(outputId = "age_plot")),
   nav_panel(title = "Did it help?", selectInput(inputId = "effect_chart", label = "What would you like to see?", choices = c("Overall result", "Over time")), plotOutput(outputId = "effect_plot")),
   nav_panel(title = "Who benefited?", selectInput(inputId = "benefit_chart", label = "What would you like to see?", choices = c("By age", "By diabetes")), plotOutput(outputId = "benefit_plot")),
+  nav_item(div(style = "position: absolute; right: 40px; top: 50%; transform: translateY(-50%); margin-top: 8px;",
+               input_switch(id = "expert_mode", label = "Expert", width = "auto")
+  )),
   title = "DIG Trial explorer",
   theme = bs_theme(bg = "#eef5fc", fg = "#1a1a1a"),
   navbar_options = navbar_options(collapsible = FALSE),
@@ -48,6 +51,7 @@ ui <- page_navbar(
     .navbar-nav .nav-link { border-radius: 999px; padding: 10px 28px !important; color: #0b5cbf !important; }
     .navbar-nav .nav-link.active { background: #0b5cbf; color: white !important; }
     .overview-wrap { max-width: 960px; margin: 0 auto !important; padding: 0 24px 24px; }
+    .navbar-nav .nav-link[data-value='Expert view'] { border: 2px solid #0b5cbf; }
   "),
   sidebar = sidebar(open = "closed",
     checkboxGroupInput(inputId = "sex" , label = "Sex", choices = c("Male" = 1, "Female" = 2), selected = c(1, 2)),
