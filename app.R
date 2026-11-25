@@ -2,45 +2,27 @@ library(shiny)
 library(bslib)
 
 # Define UI for app that draws a histogram ----
-ui <- page_sidebar(
-  # App title ----
-  title = "Hello Shiny!",
-  # Sidebar panel for inputs ----
+ui <- page_navbar(
+  nav_panel(title = "Overview", p("First page content.")),
+  nav_panel(title = "Patients", p("Second page content.")),
+  nav_panel("Did it help?", p("Third page content.")),
+  nav_panel("Who benefited?", p("Fourth page content.")),
+  title = "DIG Trial explorer",
   sidebar = sidebar(
-    # Input: Slider for the number of bins ----
+    checkboxGroupInput(inputId = "sex" , label = "Sex", choices = c("Male", "Female"), selected = c("Male", "Female")),
+    checkboxGroupInput(inputId = "race", label = "Race", choices = c("White", "Non-white"), selected = c("White", "Non-white")),
     sliderInput(
-      inputId = "bins",
-      label = "Number of bins:",
-      min = 1,
-      max = 50,
-      value = 30
+      inputId = "age",
+      label = "Age",
+      min = 21,
+      max = 90,
+      value = c(21, 90)
     )
-  ),
-  # Output: Histogram ----
-  plotOutput(outputId = "distPlot")
-)
+  )
 
-# Define server logic required to draw a histogram ----
+)
 server <- function(input, output) {
-  
-  # Histogram of the Old Faithful Geyser Data ----
-  # with requested number of bins
-  # This expression that generates a histogram is wrapped in a call
-  # to renderPlot to indicate that:
-  #
-  # 1. It is "reactive" and therefore should be automatically
-  #    re-executed when inputs (input$bins) change
-  # 2. Its output type is a plot
-  output$distPlot <- renderPlot({
-    
-    x    <- faithful$waiting
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
-    
-    hist(x, breaks = bins, col = "#007bc2", border = "white",
-         xlab = "Waiting time to next eruption (in mins)",
-         main = "Histogram of waiting times")
-    
-  })
+ 
   
 }
 
