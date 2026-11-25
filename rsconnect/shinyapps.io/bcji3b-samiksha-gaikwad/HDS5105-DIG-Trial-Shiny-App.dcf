@@ -1,0 +1,12 @@
+name: HDS5105-DIG-Trial-Shiny-App
+title: HDS5105-DIG-Trial-Shiny-App
+username: bcji3b-samiksha-gaikwad
+account: bcji3b-samiksha-gaikwad
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 18527882
+bundleId: 12868864
+url: https://bcji3b-samiksha-gaikwad.shinyapps.io/HDS5105-DIG-Trial-Shiny-App/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE

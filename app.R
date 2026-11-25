@@ -1,542 +1,838 @@
 
+# ============================================================
+# DIG TRIAL EXPLORER
+# ============================================================
+
+# 1. Load packages
 library(shiny)
-library(shinydashboard)
-library(dplyr)
+library(bslib)
 library(ggplot2)
-library(DT)
-library(survival)
+library(dplyr)
+library(hrbrthemes)
+library(tidyr)
+library(bsicons)
 
-# -----------------------------
-# 1. LOAD DATA
-# -----------------------------
 
-DIG <- readRDS("Data/DIG_clean.rds")
+# 2. Load and prepare data
+dig <- read.csv("Data/DIG-1.csv")
 
-# -----------------------------
-# 2. DASHBOARD DESIGN
-# -----------------------------
+dig$group <- factor(
+  dig$TRTMT,
+  levels = c(0, 1),
+  labels = c("Placebo", "Digoxin")
+)
 
-ui <- dashboardPage(
+dig$age_group <- cut(
+  dig$AGE,
+  breaks = c(0, 60, 70, 100),
+  labels = c("Under 60", "60–70", "Over 70"),
+  right = FALSE
+)
+
+dig$diabetes <- factor(
+  dig$DIABETES,
+  levels = c(0, 1),
+  labels = c("No diabetes", "Diabetes")
+)
+
+
+# ============================================================
+# 3. USER INTERFACE
+# ============================================================
+
+ui <- page_navbar(
   
-  skin = "purple",
+  # ----------------------------------------------------------
+  # OVERVIEW TAB
+  # ----------------------------------------------------------
   
-  dashboardHeader(
-    title = "DIG Trial Explorer",
-    titleWidth = 280
-  ),
-  
-  dashboardSidebar(
-    width = 280,
+  nav_panel(
+    title = "Overview",
     
-    sidebarMenu(
-      menuItem("Overview", tabName = "overview", icon = icon("dashboard")),
-      menuItem("Patients", tabName = "patients", icon = icon("users")),
-      menuItem("Did it help?", tabName = "outcomes", icon = icon("chart-bar")),
-      menuItem("Who benefited?", tabName = "benefits", icon = icon("user-check"))
-    ),
-    
-    hr(),
-    
-    h4("Patient Filters", style = "padding-left: 15px;"),
-    
-    selectInput(
-      "treatment",
-      "Treatment group",
-      choices = c("All Patients", "Placebo", "Digoxin"),
-      selected = "All Patients"
-    ),
-    
-    selectInput(
-      "sex",
-      "Sex",
-      choices = c("All", "Male", "Female"),
-      selected = "All"
-    ),
-    
-    selectInput(
-      "race",
-      "Race code",
-      choices = c("All", sort(unique(DIG$RACE[!is.na(DIG$RACE)]))),
-      selected = "All"
-    ),
-    
-    sliderInput(
-      "age",
-      "Patient age range",
-      min = floor(min(DIG$AGE, na.rm = TRUE)),
-      max = ceiling(max(DIG$AGE, na.rm = TRUE)),
-      value = c(
-        floor(min(DIG$AGE, na.rm = TRUE)),
-        ceiling(max(DIG$AGE, na.rm = TRUE))
+    div(
+      class = "overview-wrap",
+      
+      div(
+        style = "text-align: center; padding: 40px 0 24px;",
+        
+        h1(
+          "Digoxin: an old medicine, a fair test",
+          style = "font-weight: 800; letter-spacing: 1px; margin-bottom: 16px;"
+        ),
+        
+        p(
+          "See who took part, what changed, and who benefited most.",
+          style = "color: #6b7280; font-size: 18px;"
+        )
+      ),
+      
+      hr(
+        style = "width: 100%; height: 12px; border: none;
+        border-radius: 7px; opacity: 1; margin: 0 0 40px;
+        background: linear-gradient(to right, #0b5cbf, rgba(11, 92, 191, 0));"
+      ),
+      
+      layout_columns(
+        col_widths = c(6, 6),
+        gap = "40px",
+        
+        tags$img(
+          src = "banner.png",
+          style = "width: 100%; height: 100%; max-height: 440px;
+          object-fit: cover; border-radius: 12px;"
+        ),
+        
+        layout_column_wrap(
+          width = 1,
+          gap = "24px",
+          
+          value_box(
+            title = "Patients in the trial",
+            value = "6,800",
+            showcase = bs_icon("people"),
+            theme = "primary"
+          ),
+          
+          value_box(
+            title = "Heart failure hospital stays",
+            value = "35% → 27%",
+            showcase = bs_icon("hospital"),
+            theme = "primary"
+          ),
+          
+          value_box(
+            title = "Lower risk of hospital stay",
+            value = "23%",
+            showcase = bs_icon("heart-pulse"),
+            theme = "primary"
+          )
+        )
       )
-    ),
-    
-    hr(),
-    
-    selectInput(
-      "view_mode",
-      "Viewing mode",
-      choices = c("Simple", "Expert"),
-      selected = "Simple"
     )
   ),
   
-  dashboardBody(
+  
+  # ----------------------------------------------------------
+  # PATIENTS TAB
+  # ----------------------------------------------------------
+  
+  nav_panel(
+    title = "Patients",
     
-    tags$head(
-      tags$style(HTML("
-        .content-wrapper, .right-side {
-          background-color: #f5f3fa;
-        }
-        .box {
-          border-radius: 8px;
-        }
-        .main-header .logo {
-          font-weight: bold;
-        }
-      "))
+    selectInput(
+      inputId = "patient_chart",
+      label = "What would you like to see?",
+      choices = c(
+        "Age",
+        "BMI",
+        "Heart rate",
+        "Blood pressure",
+        "Race",
+        "Medical history"
+      )
     ),
     
-    tabItems(
+    plotOutput("age_plot")
+  ),
+  
+  
+  # ----------------------------------------------------------
+  # DID IT HELP TAB
+  # ----------------------------------------------------------
+  
+  nav_panel(
+    title = "Did it help?",
+    
+    selectInput(
+      inputId = "effect_chart",
+      label = "What would you like to see?",
+      choices = c("Overall result", "Over time")
+    ),
+    
+    plotOutput("effect_plot")
+  ),
+  
+  
+  # ----------------------------------------------------------
+  # WHO BENEFITED TAB
+  # ----------------------------------------------------------
+  
+  nav_panel(
+    title = "Who benefited?",
+    
+    selectInput(
+      inputId = "benefit_chart",
+      label = "What would you like to see?",
+      choices = c("By age", "By diabetes")
+    ),
+    
+    plotOutput("benefit_plot")
+  ),
+  
+  
+  # ----------------------------------------------------------
+  # EXPERT MODE SWITCH
+  # ----------------------------------------------------------
+  
+  nav_item(
+    div(
+      style = "position: absolute; right: 40px; top: 50%;
+      transform: translateY(-50%); margin-top: 8px;",
       
-      # -----------------------------
-      # OVERVIEW
-      # -----------------------------
-      
-      tabItem(
-        tabName = "overview",
-        
-        h2("DIG Trial – Clinical Overview"),
-        
-        p("Explore patient characteristics and treatment outcomes from the DIG clinical trial."),
-        
-        fluidRow(
-          valueBoxOutput("total_patients", width = 3),
-          valueBoxOutput("placebo_patients", width = 3),
-          valueBoxOutput("digoxin_patients", width = 3),
-          valueBoxOutput("death_patients", width = 3)
-        ),
-        
-        fluidRow(
-          box(
-            title = "Patient Age Distribution",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("age_overview")
-          ),
-          
-          box(
-            title = "Patients by Treatment",
-            status = "success",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("treatment_overview")
-          )
-        )
-      ),
-      
-      # -----------------------------
-      # PATIENT DEMOGRAPHICS
-      # -----------------------------
-      
-      tabItem(
-        tabName = "patients",
-        
-        h2("Patient Demographics"),
-        
-        fluidRow(
-          box(
-            title = "Age Distribution",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("age_plot")
-          ),
-          
-          box(
-            title = "Sex Distribution",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("sex_plot")
-          )
-        ),
-        
-        fluidRow(
-          box(
-            title = "Race Code Distribution",
-            status = "success",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("race_plot")
-          ),
-          
-          box(
-            title = "Patient Data",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            DTOutput("patient_table")
-          )
-        )
-      ),
-      
-      # -----------------------------
-      # TREATMENT OUTCOMES
-      # -----------------------------
-      
-      tabItem(
-        tabName = "outcomes",
-        
-        h2("Did the Treatment Help?"),
-        
-        fluidRow(
-          box(
-            title = "Death by Treatment Group",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("death_plot")
-          ),
-          
-          box(
-            title = "Hospitalisation by Treatment Group",
-            status = "success",
-            solidHeader = TRUE,
-            width = 6,
-            plotOutput("hospital_plot")
-          )
-        ),
-        
-        fluidRow(
-          box(
-            title = "Outcome Summary",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            DTOutput("outcome_table")
-          )
-        )
-      ),
-      
-      # -----------------------------
-      # WHO BENEFITED
-      # -----------------------------
-      
-      tabItem(
-        tabName = "benefits",
-        
-        h2("Who Benefited from Treatment?"),
-        
-        fluidRow(
-          box(
-            title = "Death Rate by Age Group and Treatment",
-            status = "primary",
-            solidHeader = TRUE,
-            width = 12,
-            plotOutput("age_death_plot")
-          )
-        ),
-        
-        fluidRow(
-          box(
-            title = "Clinical Characteristics",
-            status = "success",
-            solidHeader = TRUE,
-            width = 12,
-            DTOutput("clinical_table")
-          )
-        )
+      input_switch(
+        id = "expert_mode",
+        label = "Expert",
+        width = "auto"
       )
+    )
+  ),
+  
+  
+  # ----------------------------------------------------------
+  # EXPERT ANALYSIS TAB
+  # ----------------------------------------------------------
+  
+  nav_panel(
+    title = "Expert analysis",
+    
+    conditionalPanel(
+      condition = "input.expert_mode == true",
+      
+      h2("Detailed Patient Analysis"),
+      
+      h4("Patient characteristics by treatment group"),
+      
+      tableOutput("demographic_summary"),
+      
+      br(),
+      
+      h4("Age distribution"),
+      
+      plotOutput("expert_age_plot")
+    ),
+    
+    conditionalPanel(
+      condition = "input.expert_mode != true",
+      
+      h4("Please switch on Expert mode to view detailed analysis.")
+    )
+  ),
+  
+  
+  # ----------------------------------------------------------
+  # NAVIGATION BAR SETTINGS
+  # ----------------------------------------------------------
+  
+  title = "DIG Trial explorer",
+  
+  theme = bs_theme(
+    bg = "#eef5fc",
+    fg = "#1a1a1a"
+  ),
+  
+  navbar_options = navbar_options(
+    collapsible = FALSE
+  ),
+  
+  header = tags$style("
+    .navbar-brand {
+      font-weight: 800;
+      letter-spacing: 0.5px;
+    }
+
+    .navbar-collapse {
+      justify-content: center;
+    }
+
+    .navbar-nav {
+      flex-grow: 0;
+      margin: 0 auto;
+      background: white;
+      border-radius: 999px;
+      padding: 6px;
+      gap: 16px;
+    }
+
+    .navbar-nav .nav-link {
+      border-radius: 999px;
+      padding: 10px 28px !important;
+      color: #0b5cbf !important;
+    }
+
+    .navbar-nav .nav-link.active {
+      background: #0b5cbf;
+      color: white !important;
+    }
+
+    .overview-wrap {
+      max-width: 960px;
+      margin: 0 auto !important;
+      padding: 0 24px 24px;
+    }
+  "),
+  
+  # ----------------------------------------------------------
+  # SIDEBAR FILTERS
+  # ----------------------------------------------------------
+  
+  sidebar = sidebar(
+    open = "closed",
+    
+    checkboxGroupInput(
+      inputId = "sex",
+      label = "Sex",
+      choices = c("Male" = 1, "Female" = 2),
+      selected = c(1, 2)
+    ),
+    
+    checkboxGroupInput(
+      inputId = "race",
+      label = "Race",
+      choices = c("White" = 1, "Non-white" = 2),
+      selected = c(1, 2)
+    ),
+    
+    sliderInput(
+      inputId = "age",
+      label = "Age",
+      min = 21,
+      max = 90,
+      value = c(21, 90)
     )
   )
 )
 
-# -----------------------------
-# 3. SERVER
-# -----------------------------
 
-server <- function(input, output, session) {
+# ============================================================
+# 4. SERVER
+# ============================================================
+
+server <- function(input, output) {
   
-  # Apply filters to the data
+  
+  # ----------------------------------------------------------
+  # COMMON FILTERED DATA
+  # ----------------------------------------------------------
   
   filtered_data <- reactive({
     
-    data <- DIG
-    
-    if (input$treatment != "All Patients") {
-      data <- data %>%
-        filter(TRTMT_label == input$treatment)
-    }
-    
-    if (input$sex != "All") {
-      data <- data %>%
-        filter(SEX_label == input$sex)
-    }
-    
-    if (input$race != "All") {
-      data <- data %>%
-        filter(RACE == as.numeric(input$race))
-    }
-    
-    data <- data %>%
+    dig %>%
       filter(
+        SEX %in% as.numeric(input$sex),
+        RACE %in% as.numeric(input$race),
         AGE >= input$age[1],
         AGE <= input$age[2]
       )
     
-    data
   })
   
-  # -----------------------------
-  # OVERVIEW CARDS
-  # -----------------------------
   
-  output$total_patients <- renderValueBox({
-    valueBox(
-      nrow(filtered_data()),
-      "Total Patients",
-      icon = icon("users"),
-      color = "purple"
-    )
-  })
-  
-  output$placebo_patients <- renderValueBox({
-    valueBox(
-      sum(filtered_data()$TRTMT_label == "Placebo", na.rm = TRUE),
-      "Placebo Patients",
-      icon = icon("user"),
-      color = "purple"
-    )
-  })
-  
-  output$digoxin_patients <- renderValueBox({
-    valueBox(
-      sum(filtered_data()$TRTMT_label == "Digoxin", na.rm = TRUE),
-      "Digoxin Patients",
-      icon = icon("user"),
-      color = "green"
-    )
-  })
-  
-  output$death_patients <- renderValueBox({
-    valueBox(
-      sum(filtered_data()$DEATH == 1, na.rm = TRUE),
-      "Deaths",
-      icon = icon("heartbeat"),
-      color = "red"
-    )
-  })
-  
-  # -----------------------------
-  # OVERVIEW CHARTS
-  # -----------------------------
-  
-  output$age_overview <- renderPlot({
-    
-    ggplot(filtered_data(), aes(x = AGE)) +
-      geom_histogram(
-        bins = 25,
-        fill = "#7651A8",
-        color = "white"
-      ) +
-      labs(x = "Age (years)", y = "Number of patients") +
-      theme_minimal()
-  })
-  
-  output$treatment_overview <- renderPlot({
-    
-    ggplot(
-      filtered_data(),
-      aes(x = TRTMT_label, fill = TRTMT_label)
-    ) +
-      geom_bar() +
-      scale_fill_manual(
-        values = c("Placebo" = "#7651A8", "Digoxin" = "#45A77B")
-      ) +
-      labs(x = "Treatment", y = "Number of patients") +
-      theme_minimal() +
-      theme(legend.position = "none")
-  })
-  
-  # -----------------------------
-  # PATIENT DEMOGRAPHICS
-  # -----------------------------
+  # ----------------------------------------------------------
+  # PATIENTS: AGE, BMI, HEART RATE, BLOOD PRESSURE,
+  # RACE AND MEDICAL HISTORY
+  # ----------------------------------------------------------
   
   output$age_plot <- renderPlot({
     
-    ggplot(filtered_data(), aes(x = AGE)) +
+    filtered <- filtered_data()
+    
+    if (input$patient_chart == "Age") {
+      
+      Age <- ggplot(filtered, aes(x = AGE, fill = group)) +
+        geom_histogram(
+          color = "#e9ecef",
+          alpha = 0.6,
+          position = "identity",
+          binwidth = 5
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(20, 95)) +
+        labs(
+          title = "How old were the patients?",
+          x = "Age (years)",
+          y = "Number of patients",
+          fill = ""
+        )
+      
+      Age
+      
+    } else if (input$patient_chart == "BMI") {
+      
+      Bmi <- ggplot(filtered, aes(x = BMI, fill = group)) +
+        geom_histogram(
+          color = "#e9ecef",
+          alpha = 0.6,
+          position = "identity",
+          binwidth = 2,
+          na.rm = TRUE
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(10, 60)) +
+        labs(
+          title = "Body weight of the patients",
+          x = "BMI (kg/m²)",
+          y = "Number of patients",
+          fill = ""
+        )
+      
+      Bmi
+      
+    } else if (input$patient_chart == "Heart rate") {
+      
+      HR <- ggplot(filtered, aes(x = HEARTRTE, fill = group)) +
+        geom_histogram(
+          color = "#e9ecef",
+          alpha = 0.6,
+          position = "identity",
+          binwidth = 5,
+          na.rm = TRUE
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(30, 160)) +
+        labs(
+          title = "What were the patients' heart rates?",
+          x = "Heart rate (beats/min)",
+          y = "Number of patients",
+          fill = ""
+        )
+      
+      HR
+      
+    } else if (input$patient_chart == "Blood pressure") {
+      
+      BP <- ggplot(filtered) +
+        geom_histogram(
+          aes(
+            x = SYSBP,
+            y = after_stat(count),
+            fill = group
+          ),
+          color = "#e9ecef",
+          alpha = 0.6,
+          position = "identity",
+          binwidth = 10,
+          na.rm = TRUE
+        ) +
+        geom_histogram(
+          aes(
+            x = DIABP,
+            y = -after_stat(count),
+            fill = group
+          ),
+          color = "#e9ecef",
+          alpha = 0.6,
+          position = "identity",
+          binwidth = 10,
+          na.rm = TRUE
+        ) +
+        theme_ipsum() +
+        labs(
+          title = "Blood pressure was almost identical in both groups",
+          x = "Blood pressure (mmHg)",
+          y = "Number of patients",
+          fill = ""
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        annotate(
+          "label",
+          x = 190,
+          y = 300,
+          label = "Systolic"
+        ) +
+        annotate(
+          "label",
+          x = 40,
+          y = -300,
+          label = "Diastolic"
+        ) +
+        scale_y_continuous(labels = abs)
+      
+      BP
+      
+    } else if (input$patient_chart == "Race") {
+      
+      filtered$race <- factor(
+        filtered$RACE,
+        levels = c(1, 2),
+        labels = c("White", "Non-white")
+      )
+      
+      Race <- ggplot(
+        filtered,
+        aes(x = race, fill = group)
+      ) +
+        geom_bar(
+          position = "dodge",
+          color = "#e9ecef",
+          width = 0.4
+        ) +
+        coord_flip() +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        guides(
+          fill = guide_legend(reverse = TRUE)
+        ) +
+        labs(
+          title = "Ethnic background of the patients",
+          x = "",
+          y = "Number of patients",
+          fill = ""
+        )
+      
+      Race
+      
+    } else if (input$patient_chart == "Medical history") {
+      
+      history <- filtered %>%
+        group_by(group) %>%
+        summarise(
+          `Prior heart attack` = mean(PREVMI, na.rm = TRUE) * 100,
+          `Angina` = mean(ANGINA, na.rm = TRUE) * 100,
+          `Diabetes` = mean(DIABETES, na.rm = TRUE) * 100,
+          `High blood pressure` = mean(HYPERTEN, na.rm = TRUE) * 100,
+          .groups = "drop"
+        )
+      
+      history_long <- history %>%
+        pivot_longer(
+          cols = -group,
+          names_to = "condition",
+          values_to = "percent"
+        )
+      
+      History <- ggplot(
+        history_long,
+        aes(
+          x = reorder(condition, percent),
+          y = percent,
+          fill = group
+        )
+      ) +
+        geom_col(
+          position = "dodge",
+          color = "#e9ecef",
+          width = 0.4
+        ) +
+        coord_flip() +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        guides(
+          fill = guide_legend(reverse = TRUE)
+        ) +
+        labs(
+          title = "Medical history of the patients",
+          x = "",
+          y = "Percentage of patients (%)",
+          fill = ""
+        )
+      
+      History
+    }
+    
+  })
+  
+  
+  # ----------------------------------------------------------
+  # DID IT HELP?
+  # ----------------------------------------------------------
+  
+  output$effect_plot <- renderPlot({
+    
+    filtered <- filtered_data()
+    
+    if (input$effect_chart == "Overall result") {
+      
+      effect <- filtered %>%
+        group_by(group) %>%
+        summarise(
+          `Died` = mean(DEATH, na.rm = TRUE) * 100,
+          `Died or hospitalised for heart failure` =
+            mean(DWHF, na.rm = TRUE) * 100,
+          .groups = "drop"
+        )
+      
+      effect_long <- effect %>%
+        pivot_longer(
+          cols = -group,
+          names_to = "outcome",
+          values_to = "percent"
+        )
+      
+      Outcome <- ggplot(
+        effect_long,
+        aes(x = outcome, y = percent, fill = group)
+      ) +
+        geom_text(
+          aes(label = paste0(round(percent, 1), "%")),
+          position = position_dodge(width = 0.6),
+          vjust = -0.5
+        ) +
+        geom_bar(
+          position = position_dodge(width = 0.6),
+          stat = "identity",
+          color = "#e9ecef",
+          width = 0.4
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        scale_y_continuous(
+          expand = expansion(mult = c(0, 0.1))
+        ) +
+        labs(
+          title = "Same survival, fewer hospital stays",
+          x = "",
+          y = "Percentage of patients (%)",
+          fill = ""
+        )
+      
+      Outcome
+      
+    } else if (input$effect_chart == "Over time") {
+      
+      by_year <- filtered %>%
+        group_by(group) %>%
+        summarise(
+          `After 1 year` =
+            mean(DWHF == 1 & DWHFDAYS <= 365, na.rm = TRUE) * 100,
+          
+          `After 2 years` =
+            mean(DWHF == 1 & DWHFDAYS <= 730, na.rm = TRUE) * 100,
+          
+          .groups = "drop"
+        )
+      
+      by_year_long <- by_year %>%
+        pivot_longer(
+          cols = -group,
+          names_to = "time",
+          values_to = "percent"
+        )
+      
+      Time <- ggplot(
+        by_year_long,
+        aes(x = time, y = percent, fill = group)
+      ) +
+        geom_bar(
+          position = position_dodge(width = 0.6),
+          stat = "identity",
+          color = "#e9ecef",
+          width = 0.6
+        ) +
+        geom_text(
+          aes(label = paste0(round(percent, 1), "%")),
+          position = position_dodge(width = 0.6),
+          vjust = -0.5
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        scale_y_continuous(
+          expand = expansion(mult = c(0, 0.1))
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        labs(
+          title = "Did digoxin help?",
+          subtitle = "Died or hospitalised for heart failure, over time",
+          x = "",
+          y = "Percentage of patients (%)",
+          fill = ""
+        )
+      
+      Time
+    }
+    
+  })
+  
+  
+  # ----------------------------------------------------------
+  # WHO BENEFITED?
+  # ----------------------------------------------------------
+  
+  output$benefit_plot <- renderPlot({
+    
+    filtered <- filtered_data()
+    
+    if (input$benefit_chart == "By age") {
+      
+      benefit <- filtered %>%
+        group_by(age_group, group, .drop = FALSE) %>%
+        summarise(
+          percent = mean(DWHF, na.rm = TRUE) * 100,
+          .groups = "drop"
+        )
+      
+      Benefit <- ggplot(
+        benefit,
+        aes(x = age_group, y = percent, fill = group)
+      ) +
+        geom_bar(
+          position = position_dodge(width = 0.6),
+          stat = "identity",
+          color = "#e9ecef",
+          width = 0.6
+        ) +
+        geom_text(
+          aes(label = paste0(round(percent, 1), "%")),
+          position = position_dodge(width = 0.6),
+          vjust = -0.5
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        scale_y_continuous(
+          expand = expansion(mult = c(0, 0.1))
+        ) +
+        scale_x_discrete(
+          drop = FALSE
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        labs(
+          title = "Who benefited most?",
+          subtitle = "Died or hospitalised for heart failure, by age group",
+          x = "",
+          y = "Percentage of patients (%)",
+          fill = ""
+        )
+      
+      Benefit
+      
+    } else if (input$benefit_chart == "By diabetes") {
+      
+      benefit_diab <- filtered %>%
+        group_by(diabetes, group) %>%
+        summarise(
+          percent = mean(DWHF, na.rm = TRUE) * 100,
+          .groups = "drop"
+        )
+      
+      Benefit_diab <- ggplot(
+        benefit_diab,
+        aes(x = diabetes, y = percent, fill = group)
+      ) +
+        geom_bar(
+          position = position_dodge(width = 0.6),
+          stat = "identity",
+          color = "#e9ecef",
+          width = 0.6
+        ) +
+        geom_text(
+          aes(label = paste0(round(percent, 1), "%")),
+          position = position_dodge(width = 0.6),
+          vjust = -0.5
+        ) +
+        scale_fill_manual(
+          values = c("#6e03ab", "#0ac219")
+        ) +
+        scale_y_continuous(
+          expand = expansion(mult = c(0, 0.1))
+        ) +
+        theme_ipsum() +
+        theme(
+          legend.position = "bottom"
+        ) +
+        labs(
+          title = "Who benefited most?",
+          subtitle = "Died or hospitalised for heart failure, by diabetes",
+          x = "",
+          y = "Percentage of patients (%)",
+          fill = ""
+        )
+      
+      Benefit_diab
+    }
+    
+  })
+  
+  
+  # ==========================================================
+  # EXPERT ANALYSIS
+  # ==========================================================
+  
+  
+  # ----------------------------------------------------------
+  # PATIENT DEMOGRAPHIC SUMMARY
+  # ----------------------------------------------------------
+  
+  output$demographic_summary <- renderTable({
+    
+    dig %>%
+      group_by(group) %>%
+      summarise(
+        Patients = n(),
+        `Mean age` = round(mean(AGE, na.rm = TRUE), 2),
+        `SD age` = round(sd(AGE, na.rm = TRUE), 2),
+        `Mean BMI` = round(mean(BMI, na.rm = TRUE), 2),
+        .groups = "drop"
+      )
+    
+  })
+  
+  
+  # ----------------------------------------------------------
+  # EXPERT AGE DISTRIBUTION
+  # ----------------------------------------------------------
+  
+  output$expert_age_plot <- renderPlot({
+    
+    ggplot(
+      dig,
+      aes(x = AGE, fill = group)
+    ) +
       geom_histogram(
         bins = 25,
-        fill = "#7651A8",
-        color = "white"
+        alpha = 0.7,
+        position = "identity"
       ) +
-      labs(x = "Age (years)", y = "Patients") +
-      theme_minimal()
-  })
-  
-  output$sex_plot <- renderPlot({
-    
-    ggplot(filtered_data(), aes(x = SEX_label, fill = SEX_label)) +
-      geom_bar() +
       scale_fill_manual(
-        values = c("Male" = "#7651A8", "Female" = "#45A77B")
+        values = c("#6e03ab", "#0ac219")
       ) +
-      labs(x = "Sex", y = "Patients") +
-      theme_minimal() +
-      theme(legend.position = "none")
-  })
-  
-  output$race_plot <- renderPlot({
-    
-    ggplot(
-      filtered_data(),
-      aes(x = factor(RACE), fill = factor(RACE))
-    ) +
-      geom_bar() +
-      labs(x = "Race code", y = "Patients", fill = "Race code") +
-      theme_minimal()
-  })
-  
-  output$patient_table <- renderDT({
-    
-    datatable(
-      filtered_data() %>%
-        select(ID, AGE, SEX, RACE, TRTMT_label, BMI, SYSBP, DIABP),
-      options = list(pageLength = 5, scrollX = TRUE)
-    )
-  })
-  
-  # -----------------------------
-  # TREATMENT OUTCOMES
-  # -----------------------------
-  
-  output$death_plot <- renderPlot({
-    
-    plot_data <- filtered_data() %>%
-      group_by(TRTMT_label) %>%
-      summarise(
-        Death_Rate = mean(DEATH == 1, na.rm = TRUE) * 100,
-        .groups = "drop"
-      )
-    
-    ggplot(
-      plot_data,
-      aes(x = TRTMT_label, y = Death_Rate, fill = TRTMT_label)
-    ) +
-      geom_col() +
-      scale_fill_manual(
-        values = c("Placebo" = "#7651A8", "Digoxin" = "#45A77B")
-      ) +
-      labs(x = "Treatment", y = "Deaths (%)") +
-      theme_minimal() +
-      theme(legend.position = "none")
-  })
-  
-  output$hospital_plot <- renderPlot({
-    
-    plot_data <- filtered_data() %>%
-      group_by(TRTMT_label) %>%
-      summarise(
-        Hospitalisation_Rate = mean(HOSP == 1, na.rm = TRUE) * 100,
-        .groups = "drop"
-      )
-    
-    ggplot(
-      plot_data,
-      aes(x = TRTMT_label, y = Hospitalisation_Rate, fill = TRTMT_label)
-    ) +
-      geom_col() +
-      scale_fill_manual(
-        values = c("Placebo" = "#7651A8", "Digoxin" = "#45A77B")
-      ) +
-      labs(x = "Treatment", y = "Hospitalisation (%)") +
-      theme_minimal() +
-      theme(legend.position = "none")
-  })
-  
-  output$outcome_table <- renderDT({
-    
-    result <- filtered_data() %>%
-      group_by(TRTMT_label) %>%
-      summarise(
-        Patients = n(),
-        Deaths = sum(DEATH == 1, na.rm = TRUE),
-        Death_Rate = round(mean(DEATH == 1, na.rm = TRUE) * 100, 2),
-        Hospitalisations = sum(HOSP == 1, na.rm = TRUE),
-        Hospitalisation_Rate = round(mean(HOSP == 1, na.rm = TRUE) * 100, 2),
-        .groups = "drop"
-      )
-    
-    datatable(result, options = list(dom = "t", scrollX = TRUE))
-  })
-  
-  # -----------------------------
-  # AGE GROUP COMPARISON
-  # -----------------------------
-  
-  output$age_death_plot <- renderPlot({
-    
-    plot_data <- filtered_data() %>%
-      mutate(
-        Age_Group = cut(
-          AGE,
-          breaks = c(0, 50, 60, 70, 80, Inf),
-          labels = c("Under 50", "50-59", "60-69", "70-79", "80+"),
-          right = FALSE
-        )
-      ) %>%
-      group_by(Age_Group, TRTMT_label) %>%
-      summarise(
-        Death_Rate = mean(DEATH == 1, na.rm = TRUE) * 100,
-        .groups = "drop"
-      )
-    
-    ggplot(
-      plot_data,
-      aes(
-        x = Age_Group,
-        y = Death_Rate,
-        fill = TRTMT_label
-      )
-    ) +
-      geom_col(position = "dodge") +
-      scale_fill_manual(
-        values = c("Placebo" = "#7651A8", "Digoxin" = "#45A77B")
-      ) +
+      theme_ipsum() +
       labs(
-        x = "Age group",
-        y = "Deaths (%)",
+        title = "Age distribution by treatment group",
+        x = "Age (years)",
+        y = "Number of patients",
         fill = "Treatment"
-      ) +
-      theme_minimal()
-  })
-  
-  # -----------------------------
-  # CLINICAL CHARACTERISTICS
-  # -----------------------------
-  
-  output$clinical_table <- renderDT({
-    
-    result <- filtered_data() %>%
-      group_by(TRTMT_label) %>%
-      summarise(
-        Patients = n(),
-        Average_Age = round(mean(AGE, na.rm = TRUE), 1),
-        Average_BMI = round(mean(BMI, na.rm = TRUE), 1),
-        Average_Systolic_BP = round(mean(SYSBP, na.rm = TRUE), 1),
-        Average_Diastolic_BP = round(mean(DIABP, na.rm = TRUE), 1),
-        Average_Heart_Rate = round(mean(HEARTRTE, na.rm = TRUE), 1),
-        .groups = "drop"
       )
     
-    datatable(result, options = list(dom = "t", scrollX = TRUE))
   })
+  
 }
 
-# -----------------------------
-# 4. RUN APPLICATION
-# -----------------------------
+
+# ============================================================
+# 5. RUN THE APPLICATION
+# ============================================================
 
 shinyApp(ui = ui, server = server)

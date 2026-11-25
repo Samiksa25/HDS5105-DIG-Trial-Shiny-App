@@ -36,3 +36,16 @@ table(DIG_clean$TRTMT_label)
 
 # Save the cleaned dataset
 saveRDS(DIG_clean, "Data/DIG_clean.rds")
+
+# Check dataset dimensions
+dim(DIG_clean)
+
+# Check missing values
+colSums(is.na(DIG_clean))
+
+# Check patient demographics
+table(DIG_clean$SEX_label)
+table(DIG_clean$DEATH_label)
+
+# Check treatment and hospitalisation
+table(DIG_clean$TRTMT_label, DIG_clean$HOSP_label)
