@@ -198,139 +198,102 @@ ui <- page_navbar(
   # EXPERT ANALYSIS TAB
   # ----------------------------------------------------------
   
+  # ----------------------------------------------------------
+  # EXPERT ANALYSIS TAB
+  # ----------------------------------------------------------
+  
   nav_panel(
     title = "Expert analysis",
+    
     conditionalPanel(
       condition = "input.expert_mode == true",
-      h2("Explore the trial in detail", class = "expert-heading"),
-      p("A guided view of the patient data, treatment outcomes and statistical evidence.",
-        class = "expert-subheading"),
-      div(class = "section-intro",
-          strong("How to use this section: "),
-          "Choose a tab below. Each tab starts with a short explanation, followed by charts and tables. ",
-          "Percentages describe the patients with available data for that outcome."),
+      
+      div(
+        class = "expert-hero",
+        div(
+          class = "expert-hero-content",
+          span("DIG TRIAL | ADVANCED ANALYSIS", class = "expert-eyebrow"),
+          h2("Explore the trial in detail", class = "expert-heading"),
+          p(
+            "A closer look at patient characteristics, treatment outcomes, data quality and statistical evidence.",
+            class = "expert-subheading"
+          ),
+          div(
+            class = "expert-legend",
+            span(class = "legend-placebo"),
+            span("Placebo"),
+            span(class = "legend-digoxin"),
+            span("Digoxin")
+          )
+        )
+      ),
+      
+      div(
+        class = "section-intro",
+        strong("How to use this section: "),
+        "Choose a tab below. Each tab contains charts, tables and explanations. Percentages use patients with available data for each outcome."
+      ),
+      
       tabsetPanel(
         id = "expert_tabs",
-        tabPanel("1. Patient profile",
-                 div(class = "section-intro",
-                     strong("What this shows: "),
-                     "Who took part in the trial and whether the Placebo and Digoxin groups had similar starting characteristics. ",
-                     "The age and BMI charts show how values are distributed, while the demographic chart compares group composition."),
-                 layout_columns(
-                   col_widths = c(6, 6),
-                   card(card_header("Patient profile by treatment group"),
-                        tableOutput("expert_characteristics"),
-                        p(class = "plain-language",
-                          "Mean = average. SD = standard deviation, which describes how spread out the values are.")),
-                   card(card_header("Demographic breakdown"),
-                        tableOutput("expert_demographics"),
-                        p(class = "plain-language",
-                          "Counts show how many patients fall into each category within each treatment group."))
-                 ),
-                 br(),
-                 layout_columns(
-                   col_widths = c(6, 6),
-                   card(card_header("Age distribution"),
-                        plotOutput("expert_age_plot", height = "300px"),
-                        div(class = "chart-note",
-                            strong("How to read this: "),
-                            "Each curve shows where patients' ages are concentrated. Taller parts mean more patients around that age. ",
-                            "If the two curves overlap closely, the groups have a similar age pattern.")),
-                   card(card_header("BMI distribution"),
-                        plotOutput("expert_bmi_plot", height = "300px"),
-                        div(class = "chart-note",
-                            strong("How to read this: "),
-                            "The wider parts of each violin contain more patients. The central line shows the median BMI; ",
-                            "the box shows the middle half of the values. Compare the centres and spread of the two groups."))
-                 ),
-                 br(),
-                 card(card_header("Demographic profile by treatment"),
-                      plotOutput("expert_demographic_plot", height = "360px"),
-                      div(class = "chart-note",
-                          strong("How to read this: "),
-                          "Each dot represents the percentage of one treatment group in a category, such as female or diabetes. ",
-                          "Dots further to the right represent a larger share of that group. Compare categories within each characteristic."))
+        
+        tabPanel(
+          "Patient profile",
+          br(),
+          h4("Patient characteristics"),
+          p("Compare the age, BMI and demographic characteristics of the two treatment groups."),
+          tableOutput("expert_characteristics"),
+          tableOutput("expert_demographics"),
+          plotOutput("expert_demographic_plot", height = "450px"),
+          plotOutput("expert_age_plot", height = "350px"),
+          plotOutput("expert_bmi_plot", height = "350px")
         ),
-        tabPanel("2. Data quality",
-                 div(class = "section-intro",
-                     strong("What this shows: "),
-                     "How complete the dataset is. Missing values can reduce the number of patients included in an analysis, ",
-                     "so check this section before interpreting the results."),
-                 layout_columns(
-                   col_widths = c(6, 6),
-                   card(card_header("Complete records"),
-                        h3(textOutput("expert_complete_records"),
-                           style = "font-weight: 750; color: #315c9b; line-height: 1.4;"),
-                        p(class = "plain-language",
-                          "A complete record has no missing values in any column of the dataset. Individual analyses may use more patients because they only require selected variables.")),
-                   card(card_header("Missing data overview"),
-                        plotOutput("expert_missing_plot", height = "300px"),
-                        div(class = "chart-note",
-                            strong("How to read this: "),
-                            "Each point shows the percentage of records missing that variable. Points further right indicate more missing information. ",
-                            "A value of 0% means no entries are missing for that variable."))
-                 ),
-                 br(),
-                 card(card_header("Missing values by variable"),
-                      tableOutput("expert_missing_table"))
+        
+        tabPanel(
+          "Data quality",
+          br(),
+          h4("Completeness of the dataset"),
+          textOutput("expert_complete_records"),
+          plotOutput("expert_missing_plot", height = "400px"),
+          tableOutput("expert_missing_table")
         ),
-        tabPanel("3. Treatment comparison",
-                 div(class = "section-intro",
-                     strong("What this shows: "),
-                     "Compares the percentage of patients who experienced each outcome in the two treatment groups. ",
-                     "A lower percentage indicates fewer recorded events for that outcome."),
-                 p(class = "plain-language",
-                   "Risk difference = Digoxin risk minus Placebo risk. Relative risk compares the risk in the Digoxin group with the risk in the Placebo group. ",
-                   "Values below 1 for relative risk indicate a lower observed risk with Digoxin."),
-                 card(card_header("Outcome rates by treatment"),
-                      plotOutput("expert_outcome_plot", height = "380px"),
-                      div(class = "chart-note",
-                          strong("How to read this: "),
-                          "Each panel shows one outcome. The points show the percentage of patients who experienced it in each group. ",
-                          "A lower point means a lower observed percentage. These are group comparisons, not proof that treatment caused the difference.")),
-                 br(),
-                 layout_columns(
-                   col_widths = c(6, 6),
-                   card(card_header("Outcome counts and percentages"),
-                        tableOutput("expert_treatment_table")),
-                   card(card_header("Relative risk and absolute risk difference"),
-                        tableOutput("expert_effect_table"))
-                 )
+        
+        tabPanel(
+          "Treatment comparison",
+          br(),
+          h4("Treatment outcomes"),
+          p("Compare mortality, hospitalisation and the combined outcome between the treatment groups."),
+          tableOutput("expert_treatment_table"),
+          tableOutput("expert_effect_table"),
+          plotOutput("expert_outcome_plot", height = "550px")
         ),
-        tabPanel("4. Statistical tests",
-                 div(class = "section-intro",
-                     strong("What this shows: "),
-                     "Statistical tests assess whether the observed differences between treatment groups could plausibly be due to chance. ",
-                     "A p-value below 0.05 is commonly treated as statistically significant; it does not measure the size or importance of an effect."),
-                 card(card_header("P-values from statistical tests"),
-                      plotOutput("expert_pvalue_plot", height = "320px"),
-                      div(class = "chart-note",
-                          strong("How to read this: "),
-                          "Each point is the p-value from one statistical test. Points to the left of the dashed 0.05 line meet the commonly used significance threshold. ",
-                          "A small p-value does not tell us how large or important a difference is.")),
-                 br(),
-                 card(card_header("Chi-square tests and independent-samples t-tests"),
-                      tableOutput("expert_tests_table")),
-                 br(),
-                 p("These are unadjusted tests. Interpret p-values alongside effect sizes and confidence intervals; they do not establish causality.",
-                   style = "color: #6b7280;")
+        
+        tabPanel(
+          "Statistical tests",
+          br(),
+          h4("Statistical evidence"),
+          p("The following tests compare outcomes and patient characteristics between treatment groups. A p-value below 0.05 is commonly used as a significance threshold."),
+          tableOutput("expert_tests_table"),
+          plotOutput("expert_pvalue_plot", height = "400px")
         ),
-        tabPanel("5. Survival analysis",
-                 div(class = "section-intro",
-                     strong("Why this section is not showing survival curves yet: "),
-                     "Survival analysis needs a follow-up time for every participant, including those who did not experience the event. ",
-                     "The event and censoring definitions must be checked first."),
-                 h4("Survival data checks", class = "expert-heading"),
-                 p("The table below identifies the variables that need to be verified before Kaplan–Meier curves, log-rank tests or a Cox model can be calculated."),
-                 p("The dataset contains DEATH, DEATHDAY, DWHF and DWHFDAYS. Confirm from the DIG data dictionary whether DEATHDAY and DWHFDAYS contain follow-up times for participants who did not experience the event. Event-only dates cannot be used as complete survival follow-up times.",
-                   style = "color: #6b7280;"),
-                 tableOutput("expert_survival_check")
+        
+        tabPanel(
+          "Survival analysis",
+          br(),
+          h4("Survival data readiness"),
+          p("Check the availability and completeness of the event and follow-up variables before fitting a survival model."),
+          tableOutput("expert_survival_check")
         )
       )
     ),
+    
     conditionalPanel(
       condition = "input.expert_mode != true",
-      h4("Please switch on Expert mode to view detailed analysis.")
+      div(
+        style = "padding: 40px; text-align: center;",
+        h4("Expert analysis is currently switched off"),
+        p("Turn on the Expert switch in the navigation bar to view the advanced analysis.")
+      )
     )
   ),
   
@@ -419,6 +382,204 @@ ui <- page_navbar(
     .nav-tabs .nav-link { color: #53647d; font-weight: 650; }
     .nav-tabs .nav-link.active { color: #244d83; border-top: 3px solid #315c9b; }
     table { font-size: 13px; }
+    
+    /* ==========================================
+   EXPERT ANALYSIS - HERO DESIGN
+========================================== */
+
+.expert-hero {
+  background: linear-gradient(120deg, #f0eafa, #edf4fc);
+  border: 1px solid #e1d8f1;
+  border-radius: 18px;
+  padding: 32px 36px;
+  margin: 10px 0 24px 0;
+  box-shadow: 0 5px 18px rgba(50, 45, 90, 0.06);
+}
+
+.expert-eyebrow {
+  display: inline-block;
+  color: #6e03ab;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+
+.expert-heading {
+  color: #263653;
+  font-weight: 800;
+  margin-bottom: 10px;
+}
+
+.expert-subheading {
+  color: #66738a;
+  font-size: 15px;
+  max-width: 720px;
+  line-height: 1.7;
+  margin-bottom: 20px;
+}
+
+.expert-legend {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #536078;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.legend-placebo,
+.legend-digoxin {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-placebo {
+  background: #6e03ab;
+}
+
+.legend-digoxin {
+  background: #0b5cbf;
+  margin-left: 12px;
+}
+
+/* ==========================================
+   EXPERT ANALYSIS - TAB NAVIGATION
+========================================== */
+
+#expert_tabs .nav-tabs {
+  border-bottom: 1px solid #e5e8f0;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+#expert_tabs .nav-tabs .nav-link {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #59677e;
+  font-weight: 650;
+  padding: 11px 16px;
+  transition: all 0.2s ease;
+}
+
+#expert_tabs .nav-tabs .nav-link:hover {
+  background: #f3eff9;
+  color: #6e03ab;
+}
+
+#expert_tabs .nav-tabs .nav-link.active {
+  background: #6e03ab;
+  color: #ffffff;
+  border-color: #6e03ab;
+}
+
+/* ==========================================
+   EXPERT ANALYSIS - CARDS
+========================================== */
+
+.card {
+  border: 1px solid #e5e8f0;
+  border-radius: 15px;
+  box-shadow: 0 4px 16px rgba(35, 55, 85, 0.05);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.card-header {
+  background: #ffffff;
+  color: #293b5a;
+  font-weight: 750;
+  border-bottom: 1px solid #edf0f5;
+  padding: 16px 18px;
+}
+
+.card-body {
+  padding: 20px;
+}
+
+/* ==========================================
+   EXPERT ANALYSIS - TABLES
+========================================== */
+
+#expert_tabs .table {
+  font-size: 13px;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#expert_tabs .table thead th {
+  background: #f0eafa;
+  color: #4d2675;
+  font-weight: 750;
+  border-bottom: 2px solid #ded0ef;
+  padding: 12px;
+}
+
+#expert_tabs .table tbody td {
+  padding: 11px 12px;
+  color: #39475d;
+  vertical-align: middle;
+}
+
+#expert_tabs .table tbody tr:nth-child(even) {
+  background: #f5f8fc;
+}
+
+#expert_tabs .table tbody tr:hover {
+  background: #f0eafa;
+}
+
+/* ==========================================
+   EXPERT ANALYSIS - EXPLANATIONS
+========================================== */
+
+#expert_tabs .section-intro {
+  background: #f0f4fb;
+  border-left: 4px solid #6e03ab;
+  border-radius: 9px;
+  padding: 15px 18px;
+  color: #40516b;
+  line-height: 1.65;
+  margin: 10px 0 22px 0;
+}
+
+#expert_tabs .plain-language {
+  color: #65748b;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+#expert_tabs .chart-note {
+  background: #f7f8fc;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #59677e;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+
+/* ==========================================
+   MOBILE RESPONSIVE DESIGN
+========================================== */
+
+@media (max-width: 768px) {
+  .expert-hero {
+    padding: 24px 20px;
+  }
+
+  #expert_tabs .nav-tabs {
+    gap: 5px;
+  }
+
+  #expert_tabs .nav-tabs .nav-link {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+}
   "),
   
   # ----------------------------------------------------------
