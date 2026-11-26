@@ -14,7 +14,13 @@ library(bsicons)
 
 
 # 2. Load and prepare data
-dig <- read.csv("Data/DIG-1.csv")
+# Prefer the cleaned dataset created by 01_data_preprocessing.R.
+# Fall back to the original CSV if the cleaned file is not available.
+if (file.exists("Data/DIG_clean.rds")) {
+  dig <- readRDS("Data/DIG_clean.rds")
+} else {
+  dig <- read.csv("Data/DIG-1.csv")
+}
 
 dig$group <- factor(
   dig$TRTMT,
@@ -194,31 +200,90 @@ ui <- page_navbar(
   
   nav_panel(
     title = "Expert analysis",
-    
     conditionalPanel(
       condition = "input.expert_mode == true",
-      
-      h2("Detailed Patient Analysis"),
-      
-      h4("Patient characteristics by treatment group"),
-      
-      tableOutput("demographic_summary"),
-      
-      br(),
-      
-      h4("Age distribution"),
-      
-      plotOutput("expert_age_plot")
+      h2("Expert Analysis Dashboard"),
+      p("Detailed analysis of the DIG trial. Explore the five sections below.",
+        style = "color: #6b7280; margin-bottom: 20px;"),
+      tabsetPanel(
+        id = "expert_tabs",
+        tabPanel("1. Patient characteristics",
+                 br(),
+                 layout_columns(
+                   col_widths = c(6, 6),
+                   card(card_header("Patient profile by treatment group"),
+                        tableOutput("expert_characteristics")),
+                   card(card_header("Demographic breakdown"),
+                        tableOutput("expert_demographics"))
+                 ),
+                 br(),
+                 layout_columns(
+                   col_widths = c(6, 6),
+                   card(card_header("Age distribution"),
+                        plotOutput("expert_age_plot", height = "300px")),
+                   card(card_header("BMI distribution"),
+                        plotOutput("expert_bmi_plot", height = "300px"))
+                 ),
+                 br(),
+                 card(card_header("Demographic profile by treatment"),
+                      plotOutput("expert_demographic_plot", height = "360px"))
+        ),
+        tabPanel("2. Data quality",
+                 br(),
+                 layout_columns(
+                   col_widths = c(6, 6),
+                   card(card_header("Complete records"),
+                        h2(textOutput("expert_complete_records"))),
+                   card(card_header("Missing data overview"),
+                        plotOutput("expert_missing_plot", height = "300px"))
+                 ),
+                 br(),
+                 card(card_header("Missing values by variable"),
+                      tableOutput("expert_missing_table"))
+        ),
+        tabPanel("3. Treatment comparison",
+                 br(),
+                 p("Outcome percentages use participants with non-missing outcome data."),
+                 card(card_header("Outcome rates by treatment"),
+                      plotOutput("expert_outcome_plot", height = "380px")),
+                 br(),
+                 layout_columns(
+                   col_widths = c(6, 6),
+                   card(card_header("Outcome counts and percentages"),
+                        tableOutput("expert_treatment_table")),
+                   card(card_header("Relative risk and absolute risk difference"),
+                        tableOutput("expert_effect_table"))
+                 )
+        ),
+        tabPanel("4. Statistical tests",
+                 br(),
+                 card(card_header("P-values from statistical tests"),
+                      plotOutput("expert_pvalue_plot", height = "320px")),
+                 br(),
+                 card(card_header("Chi-square tests and independent-samples t-tests"),
+                      tableOutput("expert_tests_table")),
+                 br(),
+                 p("These are unadjusted tests. Interpret p-values alongside effect sizes and confidence intervals; they do not establish causality.",
+                   style = "color: #6b7280;")
+        ),
+        tabPanel("5. Survival analysis",
+                 br(), h4("Survival analysis readiness"),
+                 p("Kaplan–Meier curves, numbers at risk, log-rank tests and Cox models require a verified follow-up time and censoring definition for every participant."),
+                 p("The dataset contains DEATH, DEATHDAY, DWHF and DWHFDAYS. Confirm from the DIG data dictionary whether DEATHDAY and DWHFDAYS contain follow-up times for participants who did not experience the event. Event-only dates cannot be used as complete survival follow-up times.",
+                   style = "color: #6b7280;"),
+                 tableOutput("expert_survival_check")
+        )
+      )
     ),
-    
     conditionalPanel(
       condition = "input.expert_mode != true",
-      
       h4("Please switch on Expert mode to view detailed analysis.")
     )
   ),
   
   
+  # ----------------------------------------------------------
+  # NAVIGATION BAR SETTINGS
   # ----------------------------------------------------------
   # NAVIGATION BAR SETTINGS
   # ----------------------------------------------------------
@@ -776,57 +841,299 @@ server <- function(input, output) {
   })
   
   
+  
   # ==========================================================
   # EXPERT ANALYSIS
   # ==========================================================
   
+  expert_data <- reactive({ dig })
   
-  # ----------------------------------------------------------
-  # PATIENT DEMOGRAPHIC SUMMARY
-  # ----------------------------------------------------------
-  
-  output$demographic_summary <- renderTable({
-    
-    dig %>%
+  # 1. Patient characteristics
+  output$expert_characteristics <- renderTable({
+    expert_data() %>%
       group_by(group) %>%
       summarise(
         Patients = n(),
         `Mean age` = round(mean(AGE, na.rm = TRUE), 2),
-        `SD age` = round(sd(AGE, na.rm = TRUE), 2),
+        `Age SD` = round(sd(AGE, na.rm = TRUE), 2),
         `Mean BMI` = round(mean(BMI, na.rm = TRUE), 2),
+        `BMI SD` = round(sd(BMI, na.rm = TRUE), 2),
         .groups = "drop"
       )
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_demographics <- renderTable({
+    dat <- expert_data()
+    make_demo <- function(variable, label, value_labels) {
+      value <- factor(dat[[variable]], levels = as.numeric(names(value_labels)),
+                      labels = unname(value_labels))
+      out <- as.data.frame(table(dat$group, value, useNA = "ifany"))
+      names(out) <- c("Treatment", "Category", "Patients")
+      out$Variable <- label
+      out[, c("Variable", "Treatment", "Category", "Patients")]
+    }
+    bind_rows(
+      make_demo("SEX", "Sex", c("1" = "Male", "2" = "Female")),
+      make_demo("RACE", "Race", c("1" = "White", "2" = "Non-white")),
+      make_demo("DIABETES", "Diabetes", c("0" = "No", "1" = "Yes")),
+      make_demo("HYPERTEN", "Hypertension", c("0" = "No", "1" = "Yes"))
+    )
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_demographic_plot <- renderPlot({
+    dat <- expert_data()
+    demo_long <- bind_rows(
+      dat %>% filter(!is.na(SEX)) %>% count(group, Category = factor(SEX, levels = c(1, 2), labels = c("Male", "Female")), name = "Patients") %>% mutate(Characteristic = "Sex"),
+      dat %>% filter(!is.na(RACE)) %>% count(group, Category = factor(RACE, levels = c(1, 2), labels = c("White", "Non-white")), name = "Patients") %>% mutate(Characteristic = "Race"),
+      dat %>% filter(!is.na(DIABETES)) %>% count(group, Category = factor(DIABETES, levels = c(0, 1), labels = c("No diabetes", "Diabetes")), name = "Patients") %>% mutate(Characteristic = "Diabetes"),
+      dat %>% filter(!is.na(HYPERTEN)) %>% count(group, Category = factor(HYPERTEN, levels = c(0, 1), labels = c("No hypertension", "Hypertension")), name = "Patients") %>% mutate(Characteristic = "Hypertension")
+    ) %>%
+      group_by(group, Characteristic) %>%
+      mutate(Percent = Patients / sum(Patients) * 100) %>%
+      ungroup()
     
+    ggplot(demo_long, aes(x = Characteristic, y = Percent, fill = Category)) +
+      geom_col(position = "stack", width = 0.68) +
+      facet_wrap(~ group) +
+      scale_fill_brewer(palette = "Set2") +
+      theme_ipsum() +
+      theme(legend.position = "bottom") +
+      labs(title = "Composition of each treatment group",
+           x = NULL, y = "Within-group percentage", fill = "Category")
   })
-  
-  
-  # ----------------------------------------------------------
-  # EXPERT AGE DISTRIBUTION
-  # ----------------------------------------------------------
   
   output$expert_age_plot <- renderPlot({
-    
-    ggplot(
-      dig,
-      aes(x = AGE, fill = group)
-    ) +
-      geom_histogram(
-        bins = 25,
-        alpha = 0.7,
-        position = "identity"
-      ) +
-      scale_fill_manual(
-        values = c("#6e03ab", "#0ac219")
-      ) +
+    ggplot(expert_data(), aes(x = AGE, fill = group)) +
+      geom_histogram(bins = 25, alpha = 0.65, position = "identity", na.rm = TRUE) +
+      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
       theme_ipsum() +
-      labs(
-        title = "Age distribution by treatment group",
-        x = "Age (years)",
-        y = "Number of patients",
-        fill = "Treatment"
-      )
-    
+      labs(title = "Age distribution by treatment group", x = "Age (years)",
+           y = "Number of patients", fill = "Treatment")
   })
+  
+  output$expert_bmi_plot <- renderPlot({
+    ggplot(expert_data(), aes(x = group, y = BMI, fill = group)) +
+      geom_boxplot(na.rm = TRUE) +
+      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+      theme_ipsum() + theme(legend.position = "none") +
+      labs(title = "BMI distribution by treatment group", x = "Treatment group",
+           y = "BMI (kg/m²)")
+  })
+  
+  # 2. Data quality
+  output$expert_complete_records <- renderText({
+    dat <- expert_data()
+    n_complete <- sum(complete.cases(dat))
+    paste0(format(n_complete, big.mark = ","), " of ",
+           format(nrow(dat), big.mark = ","), " records are complete across all variables (",
+           round(100 * n_complete / nrow(dat), 1), "%).")
+  })
+  
+  output$expert_missing_table <- renderTable({
+    dat <- expert_data()
+    data.frame(
+      Variable = names(dat),
+      `Missing values` = colSums(is.na(dat)),
+      `Missing (%)` = round(colMeans(is.na(dat)) * 100, 2),
+      check.names = FALSE
+    ) %>% arrange(desc(`Missing values`))
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_missing_plot <- renderPlot({
+    dat <- expert_data()
+    missing_plot_data <- data.frame(
+      Variable = names(dat),
+      Missing_Percentage = colMeans(is.na(dat)) * 100
+    ) %>%
+      filter(Missing_Percentage > 0) %>%
+      arrange(Missing_Percentage)
+    
+    if (nrow(missing_plot_data) == 0) {
+      return(ggplot() +
+               annotate("text", x = 1, y = 1, label = "No missing values detected") +
+               theme_void())
+    }
+    
+    ggplot(missing_plot_data,
+           aes(x = reorder(Variable, Missing_Percentage), y = Missing_Percentage)) +
+      geom_col(fill = "#6e03ab", width = 0.7) +
+      coord_flip() +
+      theme_ipsum() +
+      labs(title = "Percentage missing by variable", x = NULL,
+           y = "Missing values (%)")
+  })
+  
+  # 3. Treatment comparison
+  binary_summary <- function(dat, variable, outcome_label) {
+    valid <- !is.na(dat[[variable]]) & !is.na(dat$group)
+    d <- dat[valid, , drop = FALSE]
+    bind_rows(lapply(levels(droplevels(d$group)), function(g) {
+      idx <- d$group == g
+      n <- sum(idx)
+      events <- sum(d[[variable]][idx] == 1)
+      ci <- if (n > 0) binom.test(events, n)$conf.int else c(NA_real_, NA_real_)
+      data.frame(
+        Outcome = outcome_label, Treatment = g, Patients = n, Events = events,
+        `Risk (%)` = round(100 * events / n, 2),
+        `95% binomial CI` = paste0(round(100 * ci[1], 2), "% to ",
+                                   round(100 * ci[2], 2), "%"),
+        check.names = FALSE
+      )
+    }))
+  }
+  
+  output$expert_treatment_table <- renderTable({
+    dat <- expert_data()
+    bind_rows(
+      binary_summary(dat, "DEATH", "Mortality"),
+      binary_summary(dat, "HOSP", "Hospitalisation"),
+      binary_summary(dat, "DWHF", "Death or worsening heart failure")
+    )
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_effect_table <- renderTable({
+    dat <- expert_data()
+    outcome_vars <- c("Mortality" = "DEATH", "Hospitalisation" = "HOSP",
+                      "Death or worsening heart failure" = "DWHF")
+    bind_rows(lapply(names(outcome_vars), function(label) {
+      variable <- outcome_vars[[label]]
+      d <- dat[!is.na(dat[[variable]]) & !is.na(dat$group), , drop = FALSE]
+      placebo <- d[d$group == "Placebo", , drop = FALSE]
+      digoxin <- d[d$group == "Digoxin", , drop = FALSE]
+      n0 <- nrow(placebo)
+      n1 <- nrow(digoxin)
+      e0 <- sum(placebo[[variable]] == 1)
+      e1 <- sum(digoxin[[variable]] == 1)
+      p0 <- if (n0 > 0) e0 / n0 else NA_real_
+      p1 <- if (n1 > 0) e1 / n1 else NA_real_
+      rd_ci <- tryCatch(
+        prop.test(c(e1, e0), c(n1, n0), correct = FALSE)$conf.int,
+        error = function(e) c(NA_real_, NA_real_)
+      )
+      rr <- if (!is.na(p0) && p0 > 0) p1 / p0 else NA_real_
+      rr_ci <- if (e0 > 0 && e1 > 0 && n0 > e0 && n1 > e1) {
+        se <- sqrt(1 / e1 - 1 / n1 + 1 / e0 - 1 / n0)
+        exp(log(rr) + c(-1, 1) * 1.96 * se)
+      } else c(NA_real_, NA_real_)
+      data.frame(
+        Outcome = label,
+        `Risk difference: Digoxin - Placebo (percentage points)` =
+          round(100 * (p1 - p0), 2),
+        `95% CI for risk difference` = paste0(round(100 * rd_ci[1], 2), " to ",
+                                              round(100 * rd_ci[2], 2)),
+        `Relative risk` = round(rr, 3),
+        `95% CI for relative risk` = if (all(is.finite(rr_ci))) {
+          paste0(round(rr_ci[1], 3), " to ", round(rr_ci[2], 3))
+        } else "Not estimable with zero cells",
+        check.names = FALSE
+      )
+    }))
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_outcome_plot <- renderPlot({
+    dat <- expert_data()
+    outcome_vars <- c("Mortality" = "DEATH", "Hospitalisation" = "HOSP",
+                      "Death or worsening HF" = "DWHF")
+    plot_data <- bind_rows(lapply(names(outcome_vars), function(label) {
+      variable <- outcome_vars[[label]]
+      d <- dat[!is.na(dat[[variable]]) & !is.na(dat$group), , drop = FALSE]
+      d %>% group_by(group) %>%
+        summarise(Percent = mean(.data[[variable]] == 1) * 100, .groups = "drop") %>%
+        mutate(Outcome = label)
+    }))
+    ggplot(plot_data, aes(x = Outcome, y = Percent, fill = group)) +
+      geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+      geom_text(aes(label = paste0(round(Percent, 1), "%")),
+                position = position_dodge(width = 0.7), vjust = -0.4, size = 3.5) +
+      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+      scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.15))) +
+      theme_ipsum() + theme(legend.position = "bottom") +
+      labs(title = "Selected outcomes by treatment group", x = "",
+           y = "Patients with outcome (%)", fill = "Treatment")
+  })
+  
+  # 4. Statistical tests
+  output$expert_tests_table <- renderTable({
+    dat <- expert_data()
+    chi_row <- function(variable, label) {
+      d <- dat[!is.na(dat[[variable]]) & !is.na(dat$group), , drop = FALSE]
+      tab <- table(d$group, d[[variable]])
+      if (nrow(tab) < 2 || ncol(tab) < 2) {
+        return(data.frame(Test = label, Statistic = NA, df = NA, `p-value` = NA,
+                          Interpretation = "Insufficient outcome categories", check.names = FALSE))
+      }
+      test <- suppressWarnings(chisq.test(tab))
+      data.frame(Test = label, Statistic = round(unname(test$statistic), 3),
+                 df = unname(test$parameter), `p-value` = signif(test$p.value, 4),
+                 Interpretation = ifelse(test$p.value < 0.05,
+                                         "Evidence of an association (p < 0.05)",
+                                         "No statistically significant association (p ≥ 0.05)"),
+                 check.names = FALSE)
+    }
+    t_row <- function(variable, label) {
+      d <- dat[!is.na(dat[[variable]]) & !is.na(dat$group), , drop = FALSE]
+      test <- tryCatch(t.test(d[[variable]] ~ d$group), error = function(e) NULL)
+      if (is.null(test)) {
+        return(data.frame(Test = label, Statistic = NA, df = NA, `p-value` = NA,
+                          Interpretation = "Test could not be calculated", check.names = FALSE))
+      }
+      data.frame(Test = label, Statistic = round(unname(test$statistic), 3),
+                 df = round(unname(test$parameter), 2), `p-value` = signif(test$p.value, 4),
+                 Interpretation = ifelse(test$p.value < 0.05,
+                                         "Evidence of a difference (p < 0.05)",
+                                         "No statistically significant difference (p ≥ 0.05)"),
+                 check.names = FALSE)
+    }
+    bind_rows(
+      chi_row("HOSP", "Chi-square: treatment vs hospitalisation"),
+      chi_row("DEATH", "Chi-square: treatment vs mortality"),
+      t_row("AGE", "Welch t-test: age"),
+      t_row("BMI", "Welch t-test: BMI")
+    )
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
+  
+  output$expert_pvalue_plot <- renderPlot({
+    dat <- expert_data()
+    p_values <- c(
+      "Treatment vs hospitalisation" = tryCatch(
+        chisq.test(table(dat$group, dat$HOSP))$p.value, error = function(e) NA_real_),
+      "Treatment vs mortality" = tryCatch(
+        chisq.test(table(dat$group, dat$DEATH))$p.value, error = function(e) NA_real_),
+      "Age difference" = tryCatch(
+        t.test(AGE ~ group, data = dat)$p.value, error = function(e) NA_real_),
+      "BMI difference" = tryCatch(
+        t.test(BMI ~ group, data = dat)$p.value, error = function(e) NA_real_)
+    )
+    p_data <- data.frame(Test = names(p_values), P_value = as.numeric(p_values)) %>%
+      filter(is.finite(P_value))
+    
+    ggplot(p_data, aes(x = reorder(Test, P_value), y = P_value)) +
+      geom_col(fill = "#0b5cbf", width = 0.65) +
+      geom_hline(yintercept = 0.05, linetype = "dashed", colour = "#d62728") +
+      coord_flip() +
+      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+      theme_ipsum() +
+      labs(title = "P-values (dashed line: 0.05)", x = NULL, y = "P-value")
+  })
+  
+  # 5. Survival analysis readiness check. Do not fit a model until censoring is verified.
+  output$expert_survival_check <- renderTable({
+    dat <- expert_data()
+    vars <- c("DEATH", "DEATHDAY", "DWHF", "DWHFDAYS")
+    meanings <- c(
+      "Confirm 0/1 event coding",
+      "Confirm follow-up time is recorded for censored participants",
+      "Confirm composite event definition",
+      "Confirm follow-up time is recorded for all participants"
+    )
+    data.frame(
+      Variable = vars,
+      Available = vars %in% names(dat),
+      Non_missing = vapply(vars, function(v) if (v %in% names(dat)) sum(!is.na(dat[[v]])) else NA_integer_, integer(1)),
+      Meaning_to_confirm = meanings,
+      check.names = FALSE
+    )
+  }, striped = TRUE, bordered = TRUE, spacing = "s")
   
 }
 
