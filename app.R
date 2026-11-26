@@ -1,4 +1,5 @@
 
+
 # ============================================================
 # DIG TRIAL EXPLORER
 # ============================================================
@@ -202,50 +203,92 @@ ui <- page_navbar(
     title = "Expert analysis",
     conditionalPanel(
       condition = "input.expert_mode == true",
-      h2("Expert Analysis Dashboard"),
-      p("Detailed analysis of the DIG trial. Explore the five sections below.",
-        style = "color: #6b7280; margin-bottom: 20px;"),
+      h2("Explore the trial in detail", class = "expert-heading"),
+      p("A guided view of the patient data, treatment outcomes and statistical evidence.",
+        class = "expert-subheading"),
+      div(class = "section-intro",
+          strong("How to use this section: "),
+          "Choose a tab below. Each tab starts with a short explanation, followed by charts and tables. ",
+          "Percentages describe the patients with available data for that outcome."),
       tabsetPanel(
         id = "expert_tabs",
-        tabPanel("1. Patient characteristics",
-                 br(),
+        tabPanel("1. Patient profile",
+                 div(class = "section-intro",
+                     strong("What this shows: "),
+                     "Who took part in the trial and whether the Placebo and Digoxin groups had similar starting characteristics. ",
+                     "The age and BMI charts show how values are distributed, while the demographic chart compares group composition."),
                  layout_columns(
                    col_widths = c(6, 6),
                    card(card_header("Patient profile by treatment group"),
-                        tableOutput("expert_characteristics")),
+                        tableOutput("expert_characteristics"),
+                        p(class = "plain-language",
+                          "Mean = average. SD = standard deviation, which describes how spread out the values are.")),
                    card(card_header("Demographic breakdown"),
-                        tableOutput("expert_demographics"))
+                        tableOutput("expert_demographics"),
+                        p(class = "plain-language",
+                          "Counts show how many patients fall into each category within each treatment group."))
                  ),
                  br(),
                  layout_columns(
                    col_widths = c(6, 6),
                    card(card_header("Age distribution"),
-                        plotOutput("expert_age_plot", height = "300px")),
+                        plotOutput("expert_age_plot", height = "300px"),
+                        div(class = "chart-note",
+                            strong("How to read this: "),
+                            "Each curve shows where patients' ages are concentrated. Taller parts mean more patients around that age. ",
+                            "If the two curves overlap closely, the groups have a similar age pattern.")),
                    card(card_header("BMI distribution"),
-                        plotOutput("expert_bmi_plot", height = "300px"))
+                        plotOutput("expert_bmi_plot", height = "300px"),
+                        div(class = "chart-note",
+                            strong("How to read this: "),
+                            "The wider parts of each violin contain more patients. The central line shows the median BMI; ",
+                            "the box shows the middle half of the values. Compare the centres and spread of the two groups."))
                  ),
                  br(),
                  card(card_header("Demographic profile by treatment"),
-                      plotOutput("expert_demographic_plot", height = "360px"))
+                      plotOutput("expert_demographic_plot", height = "360px"),
+                      div(class = "chart-note",
+                          strong("How to read this: "),
+                          "Each dot represents the percentage of one treatment group in a category, such as female or diabetes. ",
+                          "Dots further to the right represent a larger share of that group. Compare categories within each characteristic."))
         ),
         tabPanel("2. Data quality",
-                 br(),
+                 div(class = "section-intro",
+                     strong("What this shows: "),
+                     "How complete the dataset is. Missing values can reduce the number of patients included in an analysis, ",
+                     "so check this section before interpreting the results."),
                  layout_columns(
                    col_widths = c(6, 6),
                    card(card_header("Complete records"),
-                        h2(textOutput("expert_complete_records"))),
+                        h3(textOutput("expert_complete_records"),
+                           style = "font-weight: 750; color: #315c9b; line-height: 1.4;"),
+                        p(class = "plain-language",
+                          "A complete record has no missing values in any column of the dataset. Individual analyses may use more patients because they only require selected variables.")),
                    card(card_header("Missing data overview"),
-                        plotOutput("expert_missing_plot", height = "300px"))
+                        plotOutput("expert_missing_plot", height = "300px"),
+                        div(class = "chart-note",
+                            strong("How to read this: "),
+                            "Each point shows the percentage of records missing that variable. Points further right indicate more missing information. ",
+                            "A value of 0% means no entries are missing for that variable."))
                  ),
                  br(),
                  card(card_header("Missing values by variable"),
                       tableOutput("expert_missing_table"))
         ),
         tabPanel("3. Treatment comparison",
-                 br(),
-                 p("Outcome percentages use participants with non-missing outcome data."),
+                 div(class = "section-intro",
+                     strong("What this shows: "),
+                     "Compares the percentage of patients who experienced each outcome in the two treatment groups. ",
+                     "A lower percentage indicates fewer recorded events for that outcome."),
+                 p(class = "plain-language",
+                   "Risk difference = Digoxin risk minus Placebo risk. Relative risk compares the risk in the Digoxin group with the risk in the Placebo group. ",
+                   "Values below 1 for relative risk indicate a lower observed risk with Digoxin."),
                  card(card_header("Outcome rates by treatment"),
-                      plotOutput("expert_outcome_plot", height = "380px")),
+                      plotOutput("expert_outcome_plot", height = "380px"),
+                      div(class = "chart-note",
+                          strong("How to read this: "),
+                          "Each panel shows one outcome. The points show the percentage of patients who experienced it in each group. ",
+                          "A lower point means a lower observed percentage. These are group comparisons, not proof that treatment caused the difference.")),
                  br(),
                  layout_columns(
                    col_widths = c(6, 6),
@@ -256,9 +299,16 @@ ui <- page_navbar(
                  )
         ),
         tabPanel("4. Statistical tests",
-                 br(),
+                 div(class = "section-intro",
+                     strong("What this shows: "),
+                     "Statistical tests assess whether the observed differences between treatment groups could plausibly be due to chance. ",
+                     "A p-value below 0.05 is commonly treated as statistically significant; it does not measure the size or importance of an effect."),
                  card(card_header("P-values from statistical tests"),
-                      plotOutput("expert_pvalue_plot", height = "320px")),
+                      plotOutput("expert_pvalue_plot", height = "320px"),
+                      div(class = "chart-note",
+                          strong("How to read this: "),
+                          "Each point is the p-value from one statistical test. Points to the left of the dashed 0.05 line meet the commonly used significance threshold. ",
+                          "A small p-value does not tell us how large or important a difference is.")),
                  br(),
                  card(card_header("Chi-square tests and independent-samples t-tests"),
                       tableOutput("expert_tests_table")),
@@ -267,8 +317,12 @@ ui <- page_navbar(
                    style = "color: #6b7280;")
         ),
         tabPanel("5. Survival analysis",
-                 br(), h4("Survival analysis readiness"),
-                 p("Kaplan–Meier curves, numbers at risk, log-rank tests and Cox models require a verified follow-up time and censoring definition for every participant."),
+                 div(class = "section-intro",
+                     strong("Why this section is not showing survival curves yet: "),
+                     "Survival analysis needs a follow-up time for every participant, including those who did not experience the event. ",
+                     "The event and censoring definitions must be checked first."),
+                 h4("Survival data checks", class = "expert-heading"),
+                 p("The table below identifies the variables that need to be verified before Kaplan–Meier curves, log-rank tests or a Cox model can be calculated."),
                  p("The dataset contains DEATH, DEATHDAY, DWHF and DWHFDAYS. Confirm from the DIG data dictionary whether DEATHDAY and DWHFDAYS contain follow-up times for participants who did not experience the event. Event-only dates cannot be used as complete survival follow-up times.",
                    style = "color: #6b7280;"),
                  tableOutput("expert_survival_check")
@@ -291,8 +345,11 @@ ui <- page_navbar(
   title = "DIG Trial explorer",
   
   theme = bs_theme(
-    bg = "#eef5fc",
-    fg = "#1a1a1a"
+    version = 5,
+    bootswatch = "minty",
+    primary = "#315c9b",
+    bg = "#f4f7fb",
+    fg = "#253247"
   ),
   
   navbar_options = navbar_options(
@@ -330,10 +387,39 @@ ui <- page_navbar(
     }
 
     .overview-wrap {
-      max-width: 960px;
+      max-width: 1100px;
       margin: 0 auto !important;
       padding: 0 24px 24px;
     }
+
+    body { background: #f4f7fb; color: #253247; }
+    .navbar { box-shadow: 0 2px 12px rgba(30, 55, 90, .08); }
+    .tab-content { padding-top: 18px; }
+    .card {
+      border: 1px solid #e5eaf2;
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(35, 55, 85, .05);
+      margin-bottom: 12px;
+    }
+    .card-header {
+      background: #ffffff;
+      color: #263b5a;
+      font-weight: 700;
+      border-bottom: 1px solid #edf0f5;
+      padding: 14px 18px;
+    }
+    .card-body { padding: 18px; }
+    .expert-heading { font-weight: 800; color: #203a60; margin-bottom: 6px; }
+    .expert-subheading { color: #65748b; font-size: 15px; margin-bottom: 22px; }
+    .section-intro {
+      background: #eaf1fb; border-left: 4px solid #315c9b;
+      border-radius: 8px; padding: 12px 16px; color: #34445c;
+      margin: 8px 0 18px 0;
+    }
+    .plain-language { color: #5d6b80; font-size: 13px; margin-top: 8px; }
+    .nav-tabs .nav-link { color: #53647d; font-weight: 650; }
+    .nav-tabs .nav-link.active { color: #244d83; border-top: 3px solid #315c9b; }
+    table { font-size: 13px; }
   "),
   
   # ----------------------------------------------------------
@@ -892,32 +978,44 @@ server <- function(input, output) {
       mutate(Percent = Patients / sum(Patients) * 100) %>%
       ungroup()
     
-    ggplot(demo_long, aes(x = Characteristic, y = Percent, fill = Category)) +
-      geom_col(position = "stack", width = 0.68) +
-      facet_wrap(~ group) +
-      scale_fill_brewer(palette = "Set2") +
+    ggplot(demo_long, aes(x = Percent, y = Category, colour = group)) +
+      geom_line(aes(group = interaction(Characteristic, Category)),
+                colour = "#c8d1df", linewidth = 0.7,
+                position = position_dodge(width = 0.45)) +
+      geom_point(size = 3.2, position = position_dodge(width = 0.45)) +
+      facet_wrap(~ Characteristic, scales = "free_y", ncol = 2) +
+      scale_colour_manual(values = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf")) +
+      scale_x_continuous(limits = c(0, 100), breaks = seq(0, 100, 25),
+                         labels = function(x) paste0(x, "%")) +
       theme_ipsum() +
-      theme(legend.position = "bottom") +
-      labs(title = "Composition of each treatment group",
-           x = NULL, y = "Within-group percentage", fill = "Category")
+      theme(legend.position = "bottom", strip.text = element_text(face = "bold"),
+            panel.grid.minor = element_blank()) +
+      labs(title = "Patient characteristics within each treatment group",
+           subtitle = "Dots show the percentage in each category",
+           x = "Share of treatment group", y = NULL, colour = "Treatment")
   })
   
   output$expert_age_plot <- renderPlot({
-    ggplot(expert_data(), aes(x = AGE, fill = group)) +
-      geom_histogram(bins = 25, alpha = 0.65, position = "identity", na.rm = TRUE) +
-      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+    ggplot(expert_data(), aes(x = AGE, colour = group, fill = group)) +
+      geom_density(alpha = 0.18, linewidth = 1.1, na.rm = TRUE) +
+      scale_colour_manual(values = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf")) +
+      scale_fill_manual(values = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf")) +
       theme_ipsum() +
-      labs(title = "Age distribution by treatment group", x = "Age (years)",
-           y = "Number of patients", fill = "Treatment")
+      theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
+      labs(title = "Age profile of the two groups", x = "Age (years)",
+           y = "Relative concentration", fill = "Treatment", colour = "Treatment")
   })
   
   output$expert_bmi_plot <- renderPlot({
     ggplot(expert_data(), aes(x = group, y = BMI, fill = group)) +
-      geom_boxplot(na.rm = TRUE) +
-      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
-      theme_ipsum() + theme(legend.position = "none") +
-      labs(title = "BMI distribution by treatment group", x = "Treatment group",
-           y = "BMI (kg/m²)")
+      geom_violin(trim = TRUE, alpha = 0.35, colour = NA, na.rm = TRUE) +
+      geom_boxplot(width = 0.16, alpha = 0.85, outlier.alpha = 0.25,
+                   na.rm = TRUE, colour = "#34445c") +
+      scale_fill_manual(values = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf")) +
+      theme_ipsum() + theme(legend.position = "none",
+                            panel.grid.minor = element_blank()) +
+      labs(title = "BMI spread in each treatment group", x = NULL,
+           y = "Body mass index (kg/m²)")
   })
   
   # 2. Data quality
@@ -950,17 +1048,25 @@ server <- function(input, output) {
     
     if (nrow(missing_plot_data) == 0) {
       return(ggplot() +
-               annotate("text", x = 1, y = 1, label = "No missing values detected") +
+               annotate("text", x = 1, y = 1, label = "No missing values detected",
+                        size = 5, colour = "#315c9b") +
                theme_void())
     }
     
     ggplot(missing_plot_data,
-           aes(x = reorder(Variable, Missing_Percentage), y = Missing_Percentage)) +
-      geom_col(fill = "#6e03ab", width = 0.7) +
-      coord_flip() +
+           aes(x = Missing_Percentage, y = reorder(Variable, Missing_Percentage))) +
+      geom_segment(aes(x = 0, xend = Missing_Percentage,
+                       yend = reorder(Variable, Missing_Percentage)),
+                   colour = "#c8d1df", linewidth = 1) +
+      geom_point(size = 3.2, colour = "#315c9b") +
+      geom_text(aes(label = paste0(round(Missing_Percentage, 1), "%")),
+                hjust = -0.35, size = 3.2, colour = "#34445c") +
+      scale_x_continuous(limits = c(0, max(missing_plot_data$Missing_Percentage) * 1.2),
+                         expand = expansion(mult = c(0, 0.02))) +
       theme_ipsum() +
-      labs(title = "Percentage missing by variable", x = NULL,
-           y = "Missing values (%)")
+      theme(panel.grid.minor = element_blank()) +
+      labs(title = "Where information is missing", x = "Records missing (%)",
+           y = NULL)
   })
   
   # 3. Treatment comparison
@@ -1041,15 +1147,20 @@ server <- function(input, output) {
         summarise(Percent = mean(.data[[variable]] == 1) * 100, .groups = "drop") %>%
         mutate(Outcome = label)
     }))
-    ggplot(plot_data, aes(x = Outcome, y = Percent, fill = group)) +
-      geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+    
+    ggplot(plot_data, aes(x = Percent, y = group, colour = group)) +
+      geom_line(aes(group = Outcome), colour = "#c8d1df", linewidth = 0.9) +
+      geom_point(size = 3.5) +
       geom_text(aes(label = paste0(round(Percent, 1), "%")),
-                position = position_dodge(width = 0.7), vjust = -0.4, size = 3.5) +
-      scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
-      scale_y_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.15))) +
-      theme_ipsum() + theme(legend.position = "bottom") +
-      labs(title = "Selected outcomes by treatment group", x = "",
-           y = "Patients with outcome (%)", fill = "Treatment")
+                nudge_x = 1.3, size = 3.3, show.legend = FALSE) +
+      facet_wrap(~ Outcome, ncol = 1) +
+      scale_colour_manual(values = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf")) +
+      scale_x_continuous(limits = c(0, NA), expand = expansion(mult = c(0, 0.16))) +
+      theme_ipsum() +
+      theme(legend.position = "none", strip.text = element_text(face = "bold"),
+            panel.grid.minor = element_blank()) +
+      labs(title = "Observed outcome percentages", x = "Patients with outcome (%)",
+           y = NULL)
   })
   
   # 4. Statistical tests
@@ -1105,15 +1216,28 @@ server <- function(input, output) {
         t.test(BMI ~ group, data = dat)$p.value, error = function(e) NA_real_)
     )
     p_data <- data.frame(Test = names(p_values), P_value = as.numeric(p_values)) %>%
-      filter(is.finite(P_value))
+      filter(is.finite(P_value)) %>%
+      mutate(Result = ifelse(P_value < 0.05,
+                             "Below 0.05 threshold", "At or above 0.05"))
     
-    ggplot(p_data, aes(x = reorder(Test, P_value), y = P_value)) +
-      geom_col(fill = "#0b5cbf", width = 0.65) +
-      geom_hline(yintercept = 0.05, linetype = "dashed", colour = "#d62728") +
-      coord_flip() +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
+    ggplot(p_data, aes(x = P_value, y = reorder(Test, P_value), colour = Result)) +
+      geom_segment(aes(x = 0, xend = P_value,
+                       yend = reorder(Test, P_value)),
+                   colour = "#c8d1df", linewidth = 1) +
+      geom_point(size = 3.5) +
+      geom_vline(xintercept = 0.05, linetype = "dashed",
+                 colour = "#b34b4b", linewidth = 0.8) +
+      geom_text(aes(label = format.pval(P_value, digits = 2, eps = 0.001)),
+                nudge_x = 0.025, size = 3.2, colour = "#34445c",
+                show.legend = FALSE) +
+      scale_colour_manual(values = c("Below 0.05 threshold" = "#247a66",
+                                     "At or above 0.05" = "#315c9b")) +
+      scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, 0.2)) +
       theme_ipsum() +
-      labs(title = "P-values (dashed line: 0.05)", x = NULL, y = "P-value")
+      theme(legend.position = "bottom", panel.grid.minor = element_blank()) +
+      labs(title = "Evidence from the statistical tests",
+           subtitle = "Dashed line marks the commonly used 0.05 threshold",
+           x = "P-value (0 to 1)", y = NULL, colour = NULL)
   })
   
   # 5. Survival analysis readiness check. Do not fit a model until censoring is verified.
