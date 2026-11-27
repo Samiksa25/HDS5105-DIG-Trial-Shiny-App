@@ -1437,46 +1437,24 @@ server <- function(input, output) {
   # ANIMATED TREATMENT OUTCOME GRAPH
   # ----------------------------------------------------------
   
-  
-  
-  
   output$expert_outcome_plot <- renderPlotly({
     
-    dat <- expert_data()
-    
-    plot_data <- dat %>%
-      group_by(group) %>%
-      summarise(
-        Mortality = mean(DEATH == 1, na.rm = TRUE) * 100,
-        Hospitalisation = mean(HOSP == 1, na.rm = TRUE) * 100,
-        `Death or worsening HF` = mean(DWHF == 1, na.rm = TRUE) * 100,
-        .groups = "drop"
-      ) %>%
-      pivot_longer(
-        cols = -group,
-        names_to = "Outcome",
-        values_to = "Percentage"
-      )
-    
     plot_ly(
-      data = plot_data,
-      x = ~Outcome,
-      y = ~Percentage,
-      color = ~group,
+      x = c("Placebo", "Digoxin"),
+      y = c(35, 27),
       type = "bar",
-      colors = c(
-        "Placebo" = "#6e03ab",
-        "Digoxin" = "#0b5cbf"
+      marker = list(
+        color = c("#6e03ab", "#0b5cbf")
       )
     ) %>%
       layout(
-        title = "Treatment outcomes by group",
-        barmode = "group",
-        xaxis = list(title = ""),
-        yaxis = list(title = "Patients with outcome (%)")
+        title = "Plotly Test",
+        xaxis = list(title = "Treatment group"),
+        yaxis = list(title = "Test percentage (%)")
       )
     
   })
+  
   
   
   # ----------------------------------------------------------
