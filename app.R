@@ -266,7 +266,8 @@ ui <- page_navbar(
               class = "dashboard-panel",
               h4("Treatment outcomes"),
               p("Comparison of observed outcomes in the Placebo and Digoxin groups."),
-              plotlyOutput("expert_outcome_plot", height = "330px"),
+              plotlyOutput("expert_outcome_plot", height = "380px"),
+              tableOutput("debug_outcome"),
               div(
                 class = "chart-explanation",
                 "How to read this: The chart compares the percentage of patients experiencing each outcome. Lower percentages indicate fewer recorded events."
@@ -994,6 +995,32 @@ server <- function(input, output) {
   
   expert_data <- reactive({ dig })
   
+  output$debug_outcome <- renderTable({
+    
+    dat <- expert_data()
+    
+    data.frame(
+      Variable = c("DEATH", "HOSP", "DWHF"),
+      Data_type = c(
+        class(dat$DEATH)[1],
+        class(dat$HOSP)[1],
+        class(dat$DWHF)[1]
+      ),
+      Non_missing = c(
+        sum(!is.na(dat$DEATH)),
+        sum(!is.na(dat$HOSP)),
+        sum(!is.na(dat$DWHF))
+      ),
+      Event_count = c(
+        sum(dat$DEATH == 1, na.rm = TRUE),
+        sum(dat$HOSP == 1, na.rm = TRUE),
+        sum(dat$DWHF == 1, na.rm = TRUE)
+      )
+    )
+    
+  })
+  
+  
   
   # ----------------------------------------------------------
   # DASHBOARD KPI VALUES
@@ -1437,23 +1464,77 @@ server <- function(input, output) {
   # ANIMATED TREATMENT OUTCOME GRAPH
   # ----------------------------------------------------------
   
+  
   output$expert_outcome_plot <- renderPlotly({
     
+    dat <- expert_data()
+    
+    outcome_vars <- c(
+      "Mortality" = "DEATH",
+      "Hospitalisation" = "HOSP",
+      "Death or worsening HF" = "DWHF"
+    )
+    
+    plot_data <- bind_rows(
+      lapply(names(outcome_vars), function(label) {
+        
+        variable <- outcome_vars[[label]]
+        
+        d <- dat %>%
+          filter(!is.na(group), !is.na(.data[[variable]]))
+        
+        d %>%
+          group_by(group) %>%
+          summarise(
+            Total = n(),
+            Events = sum(.data[[variable]] == 1),
+            Percentage = mean(.data[[variable]] == 1) * 100,
+            .groups = "drop"
+          ) %>%
+          mutate(Outcome = label)
+        
+      })
+    )
+    
+    plot_data$group <- factor(
+      plot_data$group,
+      levels = c("Placebo", "Digoxin")
+    )
+    
+    plot_data$Outcome <- factor(
+      plot_data$Outcome,
+      levels = names(outcome_vars)
+    )
+    
     plot_ly(
-      x = c("Placebo", "Digoxin"),
-      y = c(35, 27),
+      data = plot_data,
+      x = ~Outcome,
+      y = ~Percentage,
+      color = ~group,
       type = "bar",
-      marker = list(
-        color = c("#6e03ab", "#0b5cbf")
-      )
+      colors = c(
+        "Placebo" = "#6e03ab",
+        "Digoxin" = "#0b5cbf"
+      ),
+      text = ~paste0(
+        round(Percentage, 1), "%",
+        "<br>",
+        Events, " / ", Total, " patients"
+      ),
+      textposition = "outside"
     ) %>%
       layout(
-        title = "Plotly Test",
-        xaxis = list(title = "Treatment group"),
-        yaxis = list(title = "Test percentage (%)")
+        title = "Treatment outcomes by group",
+        xaxis = list(title = ""),
+        yaxis = list(
+          title = "Patients with outcome (%)",
+          rangemode = "tozero"
+        ),
+        barmode = "group"
       )
     
   })
+  
   
   
   
@@ -1558,64 +1639,94 @@ server <- function(input, output) {
   }, striped = TRUE, bordered = TRUE, spacing = "s")
   
   
+  
   output$expert_pvalue_plot <- renderPlot({
     
     dat <- expert_data()
     
-    p_values <- c(
-      
-      "Treatment vs hospitalisation" = tryCatch(
-        chisq.test(
-          table(dat$group, dat$HOSP)
-        )$p.value,
-        error = function(e) NA_real_
+    # Calculate p-values automatically
+    test_results <- data.frame(
+      Test = character(),
+      P_value = numeric()
+    )
+    
+    # 1. Mortality: Chi-square test
+    mortality_data <- dat %>%
+      filter(!is.na(group), !is.na(DEATH))
+    
+    mortality_test <- chisq.test(
+      table(mortality_data$group, mortality_data$DEATH)
+    )
+    
+    # 2. Hospitalisation: Chi-square test
+    hospital_data <- dat %>%
+      filter(!is.na(group), !is.na(HOSP))
+    
+    hospital_test <- chisq.test(
+      table(hospital_data$group, hospital_data$HOSP)
+    )
+    
+    # 3. Age: Independent t-test
+    age_data <- dat %>%
+      filter(!is.na(group), !is.na(AGE))
+    
+    age_test <- t.test(
+      AGE ~ group,
+      data = age_data
+    )
+    
+    # 4. BMI: Independent t-test
+    bmi_data <- dat %>%
+      filter(!is.na(group), !is.na(BMI))
+    
+    bmi_test <- t.test(
+      BMI ~ group,
+      data = bmi_data
+    )
+    
+    # Combine results
+    test_results <- data.frame(
+      Test = c(
+        "Mortality",
+        "Hospitalisation",
+        "Age difference",
+        "BMI difference"
       ),
-      
-      "Treatment vs mortality" = tryCatch(
-        chisq.test(
-          table(dat$group, dat$DEATH)
-        )$p.value,
-        error = function(e) NA_real_
-      ),
-      
-      "Age difference" = tryCatch(
-        t.test(
-          AGE ~ group,
-          data = dat
-        )$p.value,
-        error = function(e) NA_real_
-      ),
-      
-      "BMI difference" = tryCatch(
-        t.test(
-          BMI ~ group,
-          data = dat
-        )$p.value,
-        error = function(e) NA_real_
+      P_value = c(
+        mortality_test$p.value,
+        hospital_test$p.value,
+        age_test$p.value,
+        bmi_test$p.value
       )
     )
     
-    p_data <- data.frame(
-      Test = names(p_values),
-      P_value = as.numeric(p_values)
-    ) %>%
-      filter(is.finite(P_value)) %>%
+    # Classify statistical significance
+    test_results <- test_results %>%
       mutate(
-        Result = ifelse(
+        Significance = ifelse(
           P_value < 0.05,
-          "Below 0.05 threshold",
-          "At or above 0.05"
+          "Significant",
+          "Not significant"
         )
       )
     
+    # Create p-value dot plot
     ggplot(
-      p_data,
+      test_results,
       aes(
         x = P_value,
         y = reorder(Test, P_value),
-        colour = Result
+        colour = Significance
       )
     ) +
+      
+      geom_vline(
+        xintercept = 0.05,
+        linetype = "dashed",
+        colour = "#b34b4b",
+        linewidth = 1
+      ) +
+      
       geom_segment(
         aes(
           x = 0,
@@ -1625,47 +1736,45 @@ server <- function(input, output) {
         colour = "#c8d1df",
         linewidth = 1
       ) +
-      geom_point(size = 3.5) +
-      geom_vline(
-        xintercept = 0.05,
-        linetype = "dashed",
-        colour = "#b34b4b",
-        linewidth = 0.8
-      ) +
+      
+      geom_point(size = 4) +
+      
       geom_text(
         aes(
-          label = format.pval(
-            P_value,
-            digits = 2,
-            eps = 0.001
+          label = paste0(
+            "p = ",
+            format.pval(P_value, digits = 3, eps = 0.001)
           )
         ),
         nudge_x = 0.025,
-        size = 3.2,
-        colour = "#34445c",
-        show.legend = FALSE
+        size = 3
       ) +
+      
       scale_colour_manual(
         values = c(
-          "Below 0.05 threshold" = "#247a66",
-          "At or above 0.05" = "#315c9b"
+          "Significant" = "#247a66",
+          "Not significant" = "#315c9b"
         )
       ) +
+      
       scale_x_continuous(
         limits = c(0, 1),
         breaks = seq(0, 1, 0.2)
       ) +
+      
+      labs(
+        title = "Statistical Evidence",
+        subtitle = "Dashed line indicates the significance threshold (p = 0.05)",
+        x = "P-value",
+        y = NULL,
+        colour = NULL
+      ) +
+      
       theme_ipsum() +
+      
       theme(
         legend.position = "bottom",
         panel.grid.minor = element_blank()
-      ) +
-      labs(
-        title = "Evidence from the statistical tests",
-        subtitle = "Dashed line marks the commonly used 0.05 threshold",
-        x = "P-value (0 to 1)",
-        y = NULL,
-        colour = NULL
       )
     
   })
