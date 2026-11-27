@@ -3,6 +3,7 @@
 # ============================================================
 
 # 1. LOAD PACKAGES
+
 library(shiny)
 library(bslib)
 library(ggplot2)
@@ -12,7 +13,11 @@ library(tidyr)
 library(bsicons)
 library(plotly)
 
+
+# ============================================================
 # 2. LOAD AND PREPARE DATA
+# ============================================================
+
 if (file.exists("Data/DIG_clean.rds")) {
   dig <- readRDS("Data/DIG_clean.rds")
 } else {
@@ -56,23 +61,23 @@ ui <- page_navbar(
       class = "overview-wrap",
       
       div(
-        style = "text-align:center; padding:40px 0 24px;",
+        style = "text-align: center; padding: 40px 0 24px;",
         
         h1(
           "Digoxin: an old medicine, a fair test",
-          style = "font-weight:800; letter-spacing:1px; margin-bottom:16px;"
+          style = "font-weight: 800; letter-spacing: 1px; margin-bottom: 16px;"
         ),
         
         p(
           "See who took part, what changed, and who benefited most.",
-          style = "color:#6b7280; font-size:18px;"
+          style = "color: #6b7280; font-size: 18px;"
         )
       ),
       
       hr(
-        style = "width:100%; height:12px; border:none;
-        border-radius:7px; opacity:1; margin:0 0 40px;
-        background:linear-gradient(to right,#0b5cbf,rgba(11,92,191,0));"
+        style = "width: 100%; height: 12px; border: none;
+        border-radius: 7px; opacity: 1; margin: 0 0 40px;
+        background: linear-gradient(to right, #0b5cbf, rgba(11, 92, 191, 0));"
       ),
       
       layout_columns(
@@ -81,8 +86,8 @@ ui <- page_navbar(
         
         tags$img(
           src = "banner.png",
-          style = "width:100%; height:100%; max-height:440px;
-          object-fit:cover; border-radius:12px;"
+          style = "width: 100%; height: 100%; max-height: 440px;
+          object-fit: cover; border-radius: 12px;"
         ),
         
         layout_column_wrap(
@@ -123,8 +128,8 @@ ui <- page_navbar(
     title = "Patients",
     
     selectInput(
-      "patient_chart",
-      "What would you like to see?",
+      inputId = "patient_chart",
+      label = "What would you like to see?",
       choices = c(
         "Age",
         "BMI",
@@ -147,8 +152,8 @@ ui <- page_navbar(
     title = "Did it help?",
     
     selectInput(
-      "effect_chart",
-      "What would you like to see?",
+      inputId = "effect_chart",
+      label = "What would you like to see?",
       choices = c("Overall result", "Over time")
     ),
     
@@ -164,8 +169,8 @@ ui <- page_navbar(
     title = "Who benefited?",
     
     selectInput(
-      "benefit_chart",
-      "What would you like to see?",
+      inputId = "benefit_chart",
+      label = "What would you like to see?",
       choices = c("By age", "By diabetes")
     ),
     
@@ -179,8 +184,8 @@ ui <- page_navbar(
   
   nav_item(
     div(
-      style = "position:absolute; right:40px; top:50%;
-      transform:translateY(-50%); margin-top:8px;",
+      style = "position: absolute; right: 40px; top: 50%;
+      transform: translateY(-50%); margin-top: 8px;",
       
       input_switch(
         id = "expert_mode",
@@ -195,6 +200,7 @@ ui <- page_navbar(
   # EXPERT ANALYSIS - SINGLE DASHBOARD PAGE
   # ----------------------------------------------------------
   
+  
   nav_panel(
     title = "Expert analysis",
     
@@ -204,209 +210,222 @@ ui <- page_navbar(
       div(
         class = "expert-dashboard",
         
-        # Dashboard heading
         div(
-          class = "dashboard-heading",
-          
+          class = "dashboard-header",
           h2("DIG Trial Dashboard"),
-          
-          p(
-            "A statistical overview of patient characteristics,
-            treatment outcomes and trial results."
+          p("Explore patient characteristics, treatment outcomes and statistical findings.")
+        ),
+        
+        # KPI CARDS
+        
+        fluidRow(
+          column(
+            3,
+            div(
+              class = "dashboard-kpi",
+              div(class = "kpi-icon", bs_icon("people")),
+              h6("Total patients"),
+              h3(textOutput("kpi_patients"))
+            )
+          ),
+          column(
+            3,
+            div(
+              class = "dashboard-kpi",
+              div(class = "kpi-icon", bs_icon("hospital")),
+              h6("Hospitalisations"),
+              h3(textOutput("kpi_hospitalisations"))
+            )
+          ),
+          column(
+            3,
+            div(
+              class = "dashboard-kpi",
+              div(class = "kpi-icon", bs_icon("heart-pulse")),
+              h6("Overall mortality"),
+              h3(textOutput("kpi_mortality"))
+            )
+          ),
+          column(
+            3,
+            div(
+              class = "dashboard-kpi",
+              div(class = "kpi-icon", bs_icon("activity")),
+              h6("Complete records"),
+              h3(textOutput("kpi_complete"))
+            )
           )
         ),
         
-        # Summary cards
-        uiOutput("expert_kpis"),
+        # FIRST ROW: TREATMENT OUTCOMES
         
-        # Main charts
-        layout_columns(
-          col_widths = c(7, 5),
-          gap = "18px",
-          
-          card(
-            card_header("Patient characteristics"),
-            
-            plotOutput(
-              "expert_demographic_plot",
-              height = "300px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "This chart compares the characteristics of patients
-              in the Placebo and Digoxin groups. Similar percentages
-              suggest that the groups had comparable starting profiles."
+        fluidRow(
+          column(
+            12,
+            div(
+              class = "dashboard-panel",
+              h4("Treatment outcomes"),
+              p("Comparison of observed outcomes in the Placebo and Digoxin groups."),
+              plotlyOutput("expert_outcome_plot", height = "330px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: The chart compares the percentage of patients experiencing each outcome. Lower percentages indicate fewer recorded events."
+              )
+            )
+          )
+        ),
+        
+        # SECOND ROW: AGE AND BMI
+        
+        fluidRow(
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Age distribution"),
+              plotlyOutput("expert_age_plot", height = "420px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: The curves show where patients' ages are concentrated. Similar curves suggest similar age distributions."
+              )
             )
           ),
           
-          card(
-            card_header("Treatment outcomes"),
-            
-            plotlyOutput(
-              "expert_outcome_plot",
-              height = "300px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "Use the Play button or timeline to move between
-              mortality, hospitalisation and the combined outcome.
-              The percentages show the proportion of patients
-              experiencing each outcome."
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("BMI distribution"),
+              plotlyOutput("expert_bmi_plot", height = "420px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: The violin width shows where values are concentrated. The box shows the middle half of BMI values."
+              )
             )
           )
         ),
         
-        # Additional charts
-        layout_columns(
-          col_widths = c(6, 6),
-          gap = "18px",
-          
-          card(
-            card_header("Age distribution"),
-            
-            plotOutput(
-              "expert_age_plot",
-              height = "260px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "The curves show the distribution of patient ages.
-              Where the curves overlap, the two treatment groups
-              have a similar age distribution."
+        # THIRD ROW: DEMOGRAPHICS AND DATA QUALITY
+        
+        fluidRow(
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Patient characteristics"),
+              p("Distribution of patients across demographic categories."),
+              plotlyOutput("expert_demographic_plot", height = "420px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: The percentages show the composition of each treatment group by sex, race, diabetes and hypertension."
+              )
             )
           ),
           
-          card(
-            card_header("BMI distribution"),
-            
-            plotOutput(
-              "expert_bmi_plot",
-              height = "260px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "The box and violin shapes show how BMI values vary
-              between the two groups. The centre line represents
-              the median BMI."
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Data quality"),
+              h5(textOutput("expert_complete_records")),
+              plotlyOutput("expert_missing_plot", height = "420px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: Longer bars indicate variables with more missing information. Variables with no missing values are excluded from this chart."
+              )
             )
           )
         ),
         
-        # Statistical results
-        layout_columns(
-          col_widths = c(6, 6),
-          gap = "18px",
-          
-          card(
-            card_header("Statistical evidence"),
-            
-            plotOutput(
-              "expert_pvalue_plot",
-              height = "260px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "The dashed line marks the commonly used p-value
-              threshold of 0.05. A value below this line is
-              commonly considered statistically significant."
+        # FOURTH ROW: TREATMENT TABLES
+        
+        fluidRow(
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Outcome counts and percentages"),
+              tableOutput("expert_treatment_table")
             )
           ),
           
-          card(
-            card_header("Data quality"),
-            
-            plotOutput(
-              "expert_missing_plot",
-              height = "260px"
-            ),
-            
-            p(
-              class = "chart-note",
-              "This chart identifies variables with missing
-              information. A higher percentage means more
-              patient records are missing that variable."
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Treatment effect estimates"),
+              tableOutput("expert_effect_table"),
+              div(
+                class = "chart-explanation",
+                "Risk difference compares the two groups in percentage points. Relative risk compares their event risks."
+              )
             )
           )
         ),
         
-        # Patient table
-        card(
-          card_header("Patient data"),
-          
-          p(
-            class = "chart-note",
-            "A sample of patient records from the DIG trial dataset."
-          ),
-          
-          tableOutput("expert_patient_table")
-        ),
+        # FIFTH ROW: STATISTICAL ANALYSIS
         
-        # Treatment statistics
-        layout_columns(
-          col_widths = c(6, 6),
-          gap = "18px",
-          
-          card(
-            card_header("Treatment outcome summary"),
-            tableOutput("expert_treatment_table")
+        fluidRow(
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Statistical evidence"),
+              plotOutput("expert_pvalue_plot", height = "280px"),
+              div(
+                class = "chart-explanation",
+                "How to read this: The dashed line marks p = 0.05. Points to the left are below this commonly used threshold."
+              )
+            )
           ),
           
-          card(
-            card_header("Relative risk and risk difference"),
-            tableOutput("expert_effect_table")
+          column(
+            6,
+            div(
+              class = "dashboard-panel",
+              h4("Statistical test results"),
+              tableOutput("expert_tests_table"),
+              div(
+                class = "chart-explanation",
+                "A p-value below 0.05 is commonly considered statistically significant. It does not measure the size or importance of an effect."
+              )
+            )
           )
         ),
         
-        # Statistical tests
-        card(
-          card_header("Statistical test results"),
-          tableOutput("expert_tests_table"),
-          
-          p(
-            class = "chart-note",
-            "A p-value does not measure the size or clinical
-            importance of an effect. Results should also be
-            considered alongside risk differences and confidence intervals."
-          )
-        ),
+        # SIXTH ROW: SURVIVAL ANALYSIS
         
-        # Survival readiness
-        card(
-          card_header("Survival analysis data checks"),
-          tableOutput("expert_survival_check"),
-          
-          p(
-            class = "chart-note",
-            "Follow-up time and censoring information must be
-            verified before Kaplan-Meier curves or Cox models
-            can be calculated."
+        fluidRow(
+          column(
+            12,
+            div(
+              class = "dashboard-panel",
+              h4("Survival analysis data checks"),
+              p("Follow-up time and censoring information must be verified before survival curves or a Cox model can be calculated."),
+              tableOutput("expert_survival_check")
+            )
           )
         )
       )
     ),
     
+    # MESSAGE WHEN EXPERT MODE IS OFF
+    
     conditionalPanel(
       condition = "input.expert_mode != true",
       
       div(
-        style = "padding:40px; text-align:center;",
-        
-        h4("Switch on Expert mode"),
-        
-        p("Turn on the Expert switch in the navigation bar
-          to view the detailed trial dashboard.")
+        class = "expert-off",
+        h3("Expert analysis"),
+        p("Switch on Expert mode to view the detailed trial dashboard.")
       )
     )
   ),
   
   
+  
   # ----------------------------------------------------------
-  # NAVIGATION SETTINGS
+  # NAVIGATION BAR SETTINGS
   # ----------------------------------------------------------
   
   title = "DIG Trial explorer",
@@ -423,19 +442,11 @@ ui <- page_navbar(
     collapsible = FALSE
   ),
   
-  header = tags$style(HTML("
-    body {
-      background: #eaf1fb;
-      color: #253247;
-    }
-
-    .navbar {
-      box-shadow: 0 2px 12px rgba(30,55,90,.08);
-    }
+  header = tags$style("
 
     .navbar-brand {
       font-weight: 800;
-      letter-spacing: .5px;
+      letter-spacing: 0.5px;
     }
 
     .navbar-collapse {
@@ -448,17 +459,17 @@ ui <- page_navbar(
       background: white;
       border-radius: 999px;
       padding: 6px;
-      gap: 12px;
+      gap: 16px;
     }
 
     .navbar-nav .nav-link {
       border-radius: 999px;
-      padding: 10px 24px !important;
-      color: #315c9b !important;
+      padding: 10px 28px !important;
+      color: #0b5cbf !important;
     }
 
     .navbar-nav .nav-link.active {
-      background: #315c9b;
+      background: #0b5cbf;
       color: white !important;
     }
 
@@ -468,33 +479,20 @@ ui <- page_navbar(
       padding: 0 24px 24px;
     }
 
-    .expert-dashboard {
-      max-width: 1450px;
-      margin: 0 auto;
-      padding: 24px;
+    body {
+      background: #f4f7fb;
+      color: #253247;
     }
 
-    .dashboard-heading {
-      padding: 8px 4px 18px;
-    }
-
-    .dashboard-heading h2 {
-      color: #203a60;
-      font-weight: 800;
-      margin-bottom: 5px;
-    }
-
-    .dashboard-heading p {
-      color: #718096;
-      font-size: 14px;
+    .navbar {
+      box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
     }
 
     .card {
       border: 1px solid #e5eaf2;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(35,55,85,.06);
-      margin-bottom: 16px;
-      background: rgba(255,255,255,.92);
+      border-radius: 14px;
+      box-shadow: 0 4px 16px rgba(35, 55, 85, .05);
+      margin-bottom: 12px;
     }
 
     .card-header {
@@ -503,92 +501,157 @@ ui <- page_navbar(
       font-weight: 700;
       border-bottom: 1px solid #edf0f5;
       padding: 14px 18px;
-      border-radius: 16px 16px 0 0 !important;
     }
 
     .card-body {
       padding: 18px;
     }
 
-    .chart-note {
-      color: #718096;
-      font-size: 12px;
-      line-height: 1.6;
-      margin-top: 12px;
-      margin-bottom: 2px;
+    /* EXPERT DASHBOARD */
+
+    .expert-dashboard {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 24px;
+      background: #edf3fc;
+      border-radius: 20px;
     }
 
-    .kpi-card {
-      background: linear-gradient(135deg,#ffffff,#f1f6ff);
-      border: 1px solid #e1e9f5;
-      border-radius: 16px;
-      padding: 20px;
-      min-height: 105px;
-      box-shadow: 0 4px 14px rgba(35,55,85,.05);
+    .dashboard-header {
+      padding: 12px 4px 22px;
     }
 
-    .kpi-title {
-      color: #66758b;
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .kpi-value {
-      color: #203a60;
-      font-size: 26px;
+    .dashboard-header h2 {
+      font-size: 27px;
       font-weight: 800;
+      color: #203a60;
+      margin-bottom: 6px;
+    }
+
+    .dashboard-header p {
+      color: #718096;
+      font-size: 14px;
+    }
+
+    .dashboard-kpi {
+      background: linear-gradient(145deg, #ffffff, #f3f6fd);
+      border: 1px solid #e3eaf5;
+      border-radius: 18px;
+      padding: 20px;
+      min-height: 135px;
+      margin-bottom: 18px;
+      box-shadow: 0 5px 18px rgba(40, 65, 110, 0.06);
+    }
+
+    .dashboard-kpi h6 {
+      color: #65748b;
+      font-size: 13px;
+      margin-top: 12px;
+    }
+
+    .dashboard-kpi h3 {
+      color: #203a60;
+      font-weight: 800;
+      font-size: 27px;
+      margin-top: 5px;
     }
 
     .kpi-icon {
       color: #315c9b;
-      font-size: 20px;
-      float: right;
+      font-size: 22px;
     }
 
-    .tab-content {
-      padding-top: 18px;
+    .dashboard-panel {
+      background: #ffffff;
+      border: 1px solid #e1e9f4;
+      border-radius: 18px;
+      padding: 20px;
+      margin-bottom: 20px;
+      min-height: 100px;
+      box-shadow: 0 5px 18px rgba(40, 65, 110, 0.05);
+      overflow-x: auto;
     }
 
-    table {
+    .dashboard-panel h4 {
+      color: #263b5a;
+      font-size: 16px;
+      font-weight: 750;
+      margin-bottom: 8px;
+    }
+
+    .dashboard-panel > p {
+      color: #8995a8;
+      font-size: 12px;
+      margin-bottom: 15px;
+    }
+
+    .chart-explanation {
+      background: #f1f5fc;
+      border-radius: 9px;
+      padding: 11px 13px;
+      margin-top: 12px;
+      color: #61718a;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    .dashboard-panel table {
+      width: 100%;
       font-size: 12px;
     }
 
-    .plotly {
-      width: 100% !important;
+    .dashboard-panel .table {
+      margin-bottom: 0;
     }
 
-    @media(max-width: 768px) {
+    .expert-off {
+      background: #edf3fc;
+      padding: 70px 20px;
+      text-align: center;
+      border-radius: 18px;
+      color: #315c9b;
+    }
+
+    @media (max-width: 768px) {
       .expert-dashboard {
         padding: 12px;
       }
 
-      .dashboard-heading h2 {
-        font-size: 22px;
+      .dashboard-kpi {
+        min-height: 115px;
+      }
+
+      .dashboard-panel {
+        padding: 14px;
       }
     }
-  ")),
+
+  "),
   
-  # Sidebar filters
+  # ----------------------------------------------------------
+  # SIDEBAR FILTERS
+  # ----------------------------------------------------------
+  
   sidebar = sidebar(
     open = "closed",
     
     checkboxGroupInput(
-      "sex",
-      "Sex",
+      inputId = "sex",
+      label = "Sex",
       choices = c("Male" = 1, "Female" = 2),
       selected = c(1, 2)
     ),
     
     checkboxGroupInput(
-      "race",
-      "Race",
+      inputId = "race",
+      label = "Race",
       choices = c("White" = 1, "Non-white" = 2),
       selected = c(1, 2)
     ),
     
     sliderInput(
-      "age",
-      "Age",
+      inputId = "age",
+      label = "Age",
       min = 21,
       max = 90,
       value = c(21, 90)
@@ -601,7 +664,7 @@ ui <- page_navbar(
 # 4. SERVER
 # ============================================================
 
-server <- function(input, output, session) {
+server <- function(input, output) {
   
   # ----------------------------------------------------------
   # COMMON FILTERED DATA
@@ -624,181 +687,91 @@ server <- function(input, output, session) {
   # PATIENTS
   # ----------------------------------------------------------
   
-  output$age_plot <- renderPlot({
+  
+  output$expert_age_plot <- renderPlotly({
     
-    filtered <- filtered_data()
+    dat <- expert_data() %>%
+      filter(!is.na(AGE), !is.na(group)) %>%
+      mutate(
+        Age_band = cut(
+          AGE,
+          breaks = seq(20, 100, by = 5),
+          right = FALSE,
+          include.lowest = TRUE
+        )
+      ) %>%
+      filter(!is.na(Age_band))
     
-    if (input$patient_chart == "Age") {
-      
-      ggplot(filtered, aes(x = AGE, fill = group)) +
-        geom_histogram(
-          color = "#e9ecef",
-          alpha = 0.6,
-          position = "identity",
-          binwidth = 5
-        ) +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        theme_ipsum() +
-        coord_cartesian(xlim = c(20, 95)) +
-        labs(
-          title = "How old were the patients?",
-          x = "Age (years)",
-          y = "Number of patients",
-          fill = ""
-        )
-      
-    } else if (input$patient_chart == "BMI") {
-      
-      ggplot(filtered, aes(x = BMI, fill = group)) +
-        geom_histogram(
-          color = "#e9ecef",
-          alpha = 0.6,
-          position = "identity",
-          binwidth = 2,
-          na.rm = TRUE
-        ) +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        theme_ipsum() +
-        coord_cartesian(xlim = c(10, 60)) +
-        labs(
-          title = "Body weight of the patients",
-          x = "BMI (kg/m²)",
-          y = "Number of patients",
-          fill = ""
-        )
-      
-    } else if (input$patient_chart == "Heart rate") {
-      
-      ggplot(filtered, aes(x = HEARTRTE, fill = group)) +
-        geom_histogram(
-          color = "#e9ecef",
-          alpha = 0.6,
-          position = "identity",
-          binwidth = 5,
-          na.rm = TRUE
-        ) +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        theme_ipsum() +
-        coord_cartesian(xlim = c(30, 160)) +
-        labs(
-          title = "What were the patients' heart rates?",
-          x = "Heart rate (beats/min)",
-          y = "Number of patients",
-          fill = ""
-        )
-      
-    } else if (input$patient_chart == "Blood pressure") {
-      
-      ggplot(filtered) +
-        geom_histogram(
-          aes(x = SYSBP, y = after_stat(count), fill = group),
-          color = "#e9ecef",
-          alpha = 0.6,
-          position = "identity",
-          binwidth = 10,
-          na.rm = TRUE
-        ) +
-        geom_histogram(
-          aes(x = DIABP, y = -after_stat(count), fill = group),
-          color = "#e9ecef",
-          alpha = 0.6,
-          position = "identity",
-          binwidth = 10,
-          na.rm = TRUE
-        ) +
-        theme_ipsum() +
-        labs(
-          title = "Blood pressure in the two groups",
-          x = "Blood pressure (mmHg)",
-          y = "Number of patients",
-          fill = ""
-        ) +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        annotate("label", x = 190, y = 300, label = "Systolic") +
-        annotate("label", x = 40, y = -300, label = "Diastolic") +
-        scale_y_continuous(labels = abs)
-      
-    } else if (input$patient_chart == "Race") {
-      
-      filtered$race <- factor(
-        filtered$RACE,
-        levels = c(1, 2),
-        labels = c("White", "Non-white")
+    age_summary <- dat %>%
+      count(Age_band, group, name = "Patients") %>%
+      tidyr::complete(
+        Age_band,
+        group,
+        fill = list(Patients = 0)
+      ) %>%
+      mutate(
+        Age_band = factor(Age_band, levels = levels(dat$Age_band)),
+        Plot_count = ifelse(group == "Placebo", -Patients, Patients),
+        Age_order = as.integer(Age_band)
+      ) %>%
+      arrange(Age_order)
+    
+    age_frames <- sort(unique(age_summary$Age_order))
+    
+    plot_data <- bind_rows(
+      lapply(age_frames, function(frame_number) {
+        age_summary %>%
+          filter(Age_order <= frame_number) %>%
+          mutate(Frame = paste0("Up to age band ", frame_number))
+      })
+    )
+    
+    plot_ly(
+      data = plot_data,
+      x = ~Plot_count,
+      y = ~Age_band,
+      color = ~group,
+      frame = ~Frame,
+      type = "bar",
+      orientation = "h",
+      colors = c(
+        "Placebo" = "#6e03ab",
+        "Digoxin" = "#0b5cbf"
+      ),
+      text = ~Patients,
+      hovertemplate = paste(
+        "Age group: %{y}",
+        "<br>Patients: %{text}",
+        "<extra>%{fullData.name}</extra>"
       )
-      
-      ggplot(filtered, aes(x = race, fill = group)) +
-        geom_bar(
-          position = "dodge",
-          color = "#e9ecef",
-          width = 0.4
-        ) +
-        coord_flip() +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        theme_ipsum() +
-        theme(legend.position = "bottom") +
-        guides(fill = guide_legend(reverse = TRUE)) +
-        labs(
-          title = "Ethnic background of the patients",
-          x = "",
-          y = "Number of patients",
-          fill = ""
-        )
-      
-    } else if (input$patient_chart == "Medical history") {
-      
-      history <- filtered %>%
-        group_by(group) %>%
-        summarise(
-          `Prior heart attack` = mean(PREVMI, na.rm = TRUE) * 100,
-          `Angina` = mean(ANGINA, na.rm = TRUE) * 100,
-          `Diabetes` = mean(DIABETES, na.rm = TRUE) * 100,
-          `High blood pressure` = mean(HYPERTEN, na.rm = TRUE) * 100,
-          .groups = "drop"
-        )
-      
-      history_long <- history %>%
-        pivot_longer(
-          cols = -group,
-          names_to = "condition",
-          values_to = "percent"
-        )
-      
-      ggplot(
-        history_long,
-        aes(x = reorder(condition, percent), y = percent, fill = group)
-      ) +
-        geom_col(
-          position = "dodge",
-          color = "#e9ecef",
-          width = 0.4
-        ) +
-        coord_flip() +
-        scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
-        ) +
-        theme_ipsum() +
-        theme(legend.position = "bottom") +
-        guides(fill = guide_legend(reverse = TRUE)) +
-        labs(
-          title = "Medical history of the patients",
-          x = "",
-          y = "Percentage of patients (%)",
-          fill = ""
-        )
-    }
+    ) %>%
+      layout(
+        title = "Age distribution by treatment group",
+        xaxis = list(
+          title = "Number of patients",
+          tickformat = "d",
+          zeroline = TRUE
+        ),
+        yaxis = list(
+          title = "Age group",
+          autorange = "reversed"
+        ),
+        barmode = "overlay",
+        legend = list(
+          orientation = "h",
+          y = -0.2
+        ),
+        margin = list(l = 100, b = 80)
+      ) %>%
+      animation_opts(
+        frame = 700,
+        transition = 300,
+        redraw = TRUE
+      ) %>%
+      animation_button() %>%
+      animation_slider()
     
   })
-  
   
   # ----------------------------------------------------------
   # DID IT HELP?
@@ -845,7 +818,9 @@ server <- function(input, output, session) {
           values = c("#6e03ab", "#0ac219")
         ) +
         theme_ipsum() +
-        theme(legend.position = "bottom") +
+        theme(
+          legend.position = "bottom"
+        ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
         ) +
@@ -863,8 +838,10 @@ server <- function(input, output, session) {
         summarise(
           `After 1 year` =
             mean(DWHF == 1 & DWHFDAYS <= 365, na.rm = TRUE) * 100,
+          
           `After 2 years` =
             mean(DWHF == 1 & DWHFDAYS <= 730, na.rm = TRUE) * 100,
+          
           .groups = "drop"
         )
       
@@ -897,7 +874,9 @@ server <- function(input, output, session) {
           expand = expansion(mult = c(0, 0.1))
         ) +
         theme_ipsum() +
-        theme(legend.position = "bottom") +
+        theme(
+          legend.position = "bottom"
+        ) +
         labs(
           title = "Did digoxin help?",
           subtitle = "Died or hospitalised for heart failure, over time",
@@ -948,9 +927,13 @@ server <- function(input, output, session) {
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
         ) +
-        scale_x_discrete(drop = FALSE) +
+        scale_x_discrete(
+          drop = FALSE
+        ) +
         theme_ipsum() +
-        theme(legend.position = "bottom") +
+        theme(
+          legend.position = "bottom"
+        ) +
         labs(
           title = "Who benefited most?",
           subtitle = "Died or hospitalised for heart failure, by age group",
@@ -990,7 +973,9 @@ server <- function(input, output, session) {
           expand = expansion(mult = c(0, 0.1))
         ) +
         theme_ipsum() +
-        theme(legend.position = "bottom") +
+        theme(
+          legend.position = "bottom"
+        ) +
         labs(
           title = "Who benefited most?",
           subtitle = "Died or hospitalised for heart failure, by diabetes",
@@ -1004,145 +989,48 @@ server <- function(input, output, session) {
   
   
   # ==========================================================
-  # EXPERT DASHBOARD
+  # EXPERT ANALYSIS
   # ==========================================================
   
-  expert_data <- reactive({
-    dig
+  expert_data <- reactive({ dig })
+  
+  
+  # ----------------------------------------------------------
+  # DASHBOARD KPI VALUES
+  # ----------------------------------------------------------
+  
+  output$kpi_patients <- renderText({
+    format(nrow(dig), big.mark = ",")
   })
   
+  output$kpi_hospitalisations <- renderText({
+    n <- sum(dig$HOSP == 1, na.rm = TRUE)
+    
+    paste0(
+      format(n, big.mark = ","),
+      " (",
+      round(mean(dig$HOSP == 1, na.rm = TRUE) * 100, 1),
+      "%)"
+    )
+  })
   
-  # ----------------------------------------------------------
-  # SUMMARY CARDS
-  # ----------------------------------------------------------
+  output$kpi_mortality <- renderText({
+    paste0(
+      round(mean(dig$DEATH == 1, na.rm = TRUE) * 100, 1),
+      "%"
+    )
+  })
   
-  output$expert_kpis <- renderUI({
-    
-    dat <- expert_data()
-    
-    total_patients <- nrow(dat)
-    
-    placebo_n <- sum(dat$group == "Placebo", na.rm = TRUE)
-    
-    digoxin_n <- sum(dat$group == "Digoxin", na.rm = TRUE)
-    
-    mortality <- mean(dat$DEATH == 1, na.rm = TRUE) * 100
-    
-    layout_columns(
-      col_widths = c(3, 3, 3, 3),
-      gap = "12px",
-      
-      div(
-        class = "kpi-card",
-        div(
-          class = "kpi-title",
-          "Total patients",
-          bs_icon("people", class = "kpi-icon")
-        ),
-        div(
-          class = "kpi-value",
-          format(total_patients, big.mark = ",")
-        )
-      ),
-      
-      div(
-        class = "kpi-card",
-        div(
-          class = "kpi-title",
-          "Placebo group",
-          bs_icon("people", class = "kpi-icon")
-        ),
-        div(
-          class = "kpi-value",
-          format(placebo_n, big.mark = ",")
-        )
-      ),
-      
-      div(
-        class = "kpi-card",
-        div(
-          class = "kpi-title",
-          "Digoxin group",
-          bs_icon("people", class = "kpi-icon")
-        ),
-        div(
-          class = "kpi-value",
-          format(digoxin_n, big.mark = ",")
-        )
-      ),
-      
-      div(
-        class = "kpi-card",
-        div(
-          class = "kpi-title",
-          "Overall mortality",
-          bs_icon("heart-pulse", class = "kpi-icon")
-        ),
-        div(
-          class = "kpi-value",
-          paste0(round(mortality, 1), "%")
-        )
-      )
+  output$kpi_complete <- renderText({
+    paste0(
+      round(mean(complete.cases(dig)) * 100, 1),
+      "%"
     )
   })
   
   
   # ----------------------------------------------------------
-  # PATIENT TABLE
-  # ----------------------------------------------------------
-  
-  output$expert_patient_table <- renderTable({
-    
-    dat <- expert_data()
-    
-    vars <- intersect(
-      c("ID", "SEX", "AGE", "BMI", "TRTMT", "DEATH", "HOSP"),
-      names(dat)
-    )
-    
-    patient_table <- dat %>%
-      select(all_of(vars)) %>%
-      head(10)
-    
-    if ("SEX" %in% names(patient_table)) {
-      patient_table$SEX <- factor(
-        patient_table$SEX,
-        levels = c(1, 2),
-        labels = c("Male", "Female")
-      )
-    }
-    
-    if ("TRTMT" %in% names(patient_table)) {
-      patient_table$TRTMT <- factor(
-        patient_table$TRTMT,
-        levels = c(0, 1),
-        labels = c("Placebo", "Digoxin")
-      )
-    }
-    
-    if ("DEATH" %in% names(patient_table)) {
-      patient_table$DEATH <- factor(
-        patient_table$DEATH,
-        levels = c(0, 1),
-        labels = c("Alive", "Death")
-      )
-    }
-    
-    if ("HOSP" %in% names(patient_table)) {
-      patient_table$HOSP <- factor(
-        patient_table$HOSP,
-        levels = c(0, 1),
-        labels = c("No", "Yes")
-      )
-    }
-    
-    patient_table
-    
-  }, striped = TRUE, bordered = FALSE, spacing = "s")
-  
-  
-  # ----------------------------------------------------------
-  # PATIENT CHARACTERISTICS
+  # 1. PATIENT CHARACTERISTICS
   # ----------------------------------------------------------
   
   output$expert_characteristics <- renderTable({
@@ -1178,7 +1066,6 @@ server <- function(input, output, session) {
       )
       
       names(out) <- c("Treatment", "Category", "Patients")
-      
       out$Variable <- label
       
       out[, c("Variable", "Treatment", "Category", "Patients")]
@@ -1194,212 +1081,150 @@ server <- function(input, output, session) {
   }, striped = TRUE, bordered = TRUE, spacing = "s")
   
   
-  # ----------------------------------------------------------
-  # DEMOGRAPHIC CHART
-  # ----------------------------------------------------------
-  
-  output$expert_demographic_plot <- renderPlot({
+  output$expert_demographic_plot <- renderPlotly({
     
     dat <- expert_data()
     
-    demo_long <- bind_rows(
-      
-      dat %>%
-        filter(!is.na(SEX)) %>%
-        count(
-          group,
-          Category = factor(
-            SEX,
-            levels = c(1, 2),
-            labels = c("Male", "Female")
-          ),
-          name = "Patients"
-        ) %>%
-        mutate(Characteristic = "Sex"),
-      
-      dat %>%
-        filter(!is.na(RACE)) %>%
-        count(
-          group,
-          Category = factor(
-            RACE,
-            levels = c(1, 2),
-            labels = c("White", "Non-white")
-          ),
-          name = "Patients"
-        ) %>%
-        mutate(Characteristic = "Race"),
-      
-      dat %>%
-        filter(!is.na(DIABETES)) %>%
-        count(
-          group,
-          Category = factor(
-            DIABETES,
-            levels = c(0, 1),
-            labels = c("No diabetes", "Diabetes")
-          ),
-          name = "Patients"
-        ) %>%
-        mutate(Characteristic = "Diabetes"),
-      
-      dat %>%
-        filter(!is.na(HYPERTEN)) %>%
-        count(
-          group,
-          Category = factor(
-            HYPERTEN,
-            levels = c(0, 1),
-            labels = c("No hypertension", "Hypertension")
-          ),
-          name = "Patients"
-        ) %>%
-        mutate(Characteristic = "Hypertension")
+    radar_data <- dat %>%
+      group_by(group) %>%
+      summarise(
+        Male = mean(SEX == 1, na.rm = TRUE) * 100,
+        White = mean(RACE == 1, na.rm = TRUE) * 100,
+        Diabetes = mean(DIABETES == 1, na.rm = TRUE) * 100,
+        Hypertension = mean(HYPERTEN == 1, na.rm = TRUE) * 100,
+        .groups = "drop"
+      ) %>%
+      pivot_longer(
+        cols = -group,
+        names_to = "Characteristic",
+        values_to = "Percentage"
+      )
+    
+    radar_data$Characteristic <- factor(
+      radar_data$Characteristic,
+      levels = c("Male", "White", "Diabetes", "Hypertension")
+    )
+    
+    radar_data <- radar_data %>%
+      arrange(group, Characteristic)
+    
+    plot_ly(
+      data = radar_data,
+      type = "scatterpolar",
+      mode = "lines+markers",
+      r = ~Percentage,
+      theta = ~Characteristic,
+      color = ~group,
+      line = list(width = 3),
+      marker = list(size = 8),
+      fill = "toself",
+      colors = c("#6e03ab", "#0b5cbf"),
+      hovertemplate = paste(
+        "Characteristic: %{theta}",
+        "<br>Percentage: %{r:.1f}%",
+        "<extra>%{fullData.name}</extra>"
+      )
     ) %>%
-      group_by(group, Characteristic) %>%
-      mutate(Percent = Patients / sum(Patients) * 100) %>%
-      ungroup()
-    
-    ggplot(
-      demo_long,
-      aes(x = Percent, y = Category, colour = group)
-    ) +
-      geom_line(
-        aes(group = interaction(Characteristic, Category)),
-        colour = "#c8d1df",
-        linewidth = 0.7,
-        position = position_dodge(width = 0.45)
-      ) +
-      geom_point(
-        size = 3.2,
-        position = position_dodge(width = 0.45)
-      ) +
-      facet_wrap(
-        ~ Characteristic,
-        scales = "free_y",
-        ncol = 2
-      ) +
-      scale_colour_manual(
-        values = c(
-          "Placebo" = "#6e03ab",
-          "Digoxin" = "#0b5cbf"
+      layout(
+        title = "Patient characteristics by treatment group",
+        polar = list(
+          radialaxis = list(
+            visible = TRUE,
+            range = c(0, 100),
+            ticksuffix = "%"
+          )
+        ),
+        legend = list(
+          orientation = "h",
+          y = -0.15
         )
-      ) +
-      scale_x_continuous(
-        limits = c(0, 100),
-        breaks = seq(0, 100, 25),
-        labels = function(x) paste0(x, "%")
-      ) +
-      theme_ipsum() +
-      theme(
-        legend.position = "bottom",
-        strip.text = element_text(face = "bold"),
-        panel.grid.minor = element_blank()
-      ) +
-      labs(
-        title = "Patient characteristics within each group",
-        x = "Share of treatment group",
-        y = NULL,
-        colour = "Treatment"
       )
     
   })
   
   
-  # ----------------------------------------------------------
-  # AGE CHART
-  # ----------------------------------------------------------
   
-  output$expert_age_plot <- renderPlot({
+  output$expert_bmi_plot <- renderPlotly({
     
-    ggplot(
-      expert_data(),
-      aes(x = AGE, colour = group, fill = group)
-    ) +
-      geom_density(
-        alpha = 0.18,
-        linewidth = 1.1,
-        na.rm = TRUE
-      ) +
-      scale_colour_manual(
-        values = c(
-          "Placebo" = "#6e03ab",
-          "Digoxin" = "#0b5cbf"
+    dat <- expert_data() %>%
+      filter(!is.na(BMI), !is.na(AGE), !is.na(group)) %>%
+      mutate(
+        Age_band = cut(
+          AGE,
+          breaks = seq(20, 100, by = 10),
+          right = FALSE,
+          include.lowest = TRUE
         )
-      ) +
-      scale_fill_manual(
-        values = c(
-          "Placebo" = "#6e03ab",
-          "Digoxin" = "#0b5cbf"
-        )
-      ) +
-      theme_ipsum() +
-      theme(
-        legend.position = "bottom",
-        panel.grid.minor = element_blank()
-      ) +
-      labs(
-        title = "Age profile of the two groups",
-        x = "Age (years)",
-        y = "Relative concentration",
-        fill = "Treatment",
-        colour = "Treatment"
+      ) %>%
+      filter(!is.na(Age_band))
+    
+    bmi_data <- dat %>%
+      group_by(Age_band, group) %>%
+      summarise(
+        Mean_BMI = mean(BMI, na.rm = TRUE),
+        .groups = "drop"
+      )
+    
+    age_levels <- levels(dat$Age_band)
+    
+    bmi_frames <- bind_rows(
+      lapply(seq_along(age_levels), function(i) {
+        bmi_data %>%
+          filter(Age_band %in% age_levels[1:i]) %>%
+          mutate(Frame = paste("Age groups:", i))
+      })
+    )
+    
+    plot_ly(
+      data = bmi_frames,
+      x = ~Age_band,
+      y = ~Mean_BMI,
+      color = ~group,
+      frame = ~Frame,
+      type = "scatter",
+      mode = "lines+markers",
+      colors = c(
+        "Placebo" = "#6e03ab",
+        "Digoxin" = "#0b5cbf"
+      ),
+      line = list(width = 3),
+      marker = list(size = 9),
+      hovertemplate = paste(
+        "Age group: %{x}",
+        "<br>Mean BMI: %{y:.2f}",
+        "<extra>%{fullData.name}</extra>"
+      )
+    ) %>%
+      layout(
+        title = "Mean BMI across age groups",
+        xaxis = list(title = "Age group"),
+        yaxis = list(title = "Mean BMI (kg/m²)"),
+        legend = list(orientation = "h", y = -0.2)
+      ) %>%
+      animation_opts(
+        frame = 1000,
+        transition = 500,
+        redraw = TRUE
+      ) %>%
+      animation_slider(
+        currentvalue = list(prefix = "Showing ")
+      ) %>%
+      animation_button(
+        x = 1,
+        xanchor = "right",
+        y = 0,
+        yanchor = "top"
       )
     
   })
   
-  
   # ----------------------------------------------------------
-  # BMI CHART
-  # ----------------------------------------------------------
-  
-  output$expert_bmi_plot <- renderPlot({
-    
-    ggplot(
-      expert_data(),
-      aes(x = group, y = BMI, fill = group)
-    ) +
-      geom_violin(
-        trim = TRUE,
-        alpha = 0.35,
-        colour = NA,
-        na.rm = TRUE
-      ) +
-      geom_boxplot(
-        width = 0.16,
-        alpha = 0.85,
-        outlier.alpha = 0.25,
-        na.rm = TRUE,
-        colour = "#34445c"
-      ) +
-      scale_fill_manual(
-        values = c(
-          "Placebo" = "#6e03ab",
-          "Digoxin" = "#0b5cbf"
-        )
-      ) +
-      theme_ipsum() +
-      theme(
-        legend.position = "none",
-        panel.grid.minor = element_blank()
-      ) +
-      labs(
-        title = "BMI spread in each treatment group",
-        x = NULL,
-        y = "Body mass index (kg/m²)"
-      )
-    
-  })
-  
-  
-  # ----------------------------------------------------------
-  # DATA QUALITY
+  # 2. DATA QUALITY
   # ----------------------------------------------------------
   
   output$expert_complete_records <- renderText({
     
     dat <- expert_data()
-    
     n_complete <- sum(complete.cases(dat))
     
     paste0(
@@ -1429,141 +1254,86 @@ server <- function(input, output, session) {
   }, striped = TRUE, bordered = TRUE, spacing = "s")
   
   
-  output$expert_missing_plot <- renderPlot({
+  
+  output$expert_missing_plot <- renderPlotly({
     
     dat <- expert_data()
     
     missing_plot_data <- data.frame(
       Variable = names(dat),
+      Missing = colSums(is.na(dat)),
       Missing_Percentage = colMeans(is.na(dat)) * 100
     ) %>%
-      filter(Missing_Percentage > 0) %>%
+      filter(Missing > 0) %>%
       arrange(Missing_Percentage)
     
     if (nrow(missing_plot_data) == 0) {
       
       return(
-        ggplot() +
-          annotate(
-            "text",
-            x = 1,
-            y = 1,
-            label = "No missing values detected",
-            size = 5,
-            colour = "#315c9b"
-          ) +
-          theme_void()
+        plot_ly() %>%
+          layout(
+            title = "No missing values found",
+            xaxis = list(visible = FALSE),
+            yaxis = list(visible = FALSE)
+          )
       )
+      
     }
     
-    ggplot(
-      missing_plot_data,
-      aes(
-        x = Missing_Percentage,
-        y = reorder(Variable, Missing_Percentage)
+    missing_plot_data$Variable <- factor(
+      missing_plot_data$Variable,
+      levels = missing_plot_data$Variable
+    )
+    
+    missing_frames <- bind_rows(
+      lapply(seq_len(nrow(missing_plot_data)), function(i) {
+        
+        missing_plot_data[1:i, ] %>%
+          mutate(Frame = paste("Variables:", i))
+        
+      })
+    )
+    
+    plot_ly(
+      data = missing_frames,
+      x = ~Missing_Percentage,
+      y = ~Variable,
+      frame = ~Frame,
+      type = "bar",
+      orientation = "h",
+      marker = list(color = "#6e03ab"),
+      text = ~paste0(round(Missing_Percentage, 1), "%"),
+      textposition = "outside",
+      hovertemplate = paste(
+        "Variable: %{y}",
+        "<br>Missing: %{x:.2f}%",
+        "<extra></extra>"
       )
-    ) +
-      geom_segment(
-        aes(
-          x = 0,
-          xend = Missing_Percentage,
-          yend = reorder(Variable, Missing_Percentage)
-        ),
-        colour = "#c8d1df",
-        linewidth = 1
-      ) +
-      geom_point(
-        size = 3.2,
-        colour = "#315c9b"
-      ) +
-      geom_text(
-        aes(label = paste0(round(Missing_Percentage, 1), "%")),
-        hjust = -0.35,
-        size = 3.2,
-        colour = "#34445c"
-      ) +
-      scale_x_continuous(
-        limits = c(
-          0,
-          max(missing_plot_data$Missing_Percentage) * 1.2
-        ),
-        expand = expansion(mult = c(0, 0.02))
-      ) +
-      theme_ipsum() +
-      theme(panel.grid.minor = element_blank()) +
-      labs(
-        title = "Where information is missing",
-        x = "Records missing (%)",
-        y = NULL
+    ) %>%
+      layout(
+        title = "Missing values by variable",
+        xaxis = list(title = "Missing values (%)"),
+        yaxis = list(title = "Variable"),
+        margin = list(l = 110, r = 50),
+        showlegend = FALSE
+      ) %>%
+      animation_opts(
+        frame = 800,
+        transition = 400,
+        redraw = TRUE
+      ) %>%
+      animation_slider(
+        currentvalue = list(prefix = "Showing ")
+      ) %>%
+      animation_button(
+        x = 1,
+        xanchor = "right",
+        y = 0,
+        yanchor = "top"
       )
     
   })
   
-  
-  # ----------------------------------------------------------
-  # TREATMENT OUTCOME SUMMARY FUNCTION
-  # ----------------------------------------------------------
-  
-  binary_summary <- function(dat, variable, outcome_label) {
-    
-    valid <- !is.na(dat[[variable]]) & !is.na(dat$group)
-    
-    d <- dat[valid, , drop = FALSE]
-    
-    bind_rows(
-      lapply(levels(droplevels(d$group)), function(g) {
-        
-        idx <- d$group == g
-        
-        n <- sum(idx)
-        
-        events <- sum(d[[variable]][idx] == 1)
-        
-        ci <- if (n > 0) {
-          binom.test(events, n)$conf.int
-        } else {
-          c(NA_real_, NA_real_)
-        }
-        
-        data.frame(
-          Outcome = outcome_label,
-          Treatment = g,
-          Patients = n,
-          Events = events,
-          `Risk (%)` = round(100 * events / n, 2),
-          `95% binomial CI` = paste0(
-            round(100 * ci[1], 2),
-            "% to ",
-            round(100 * ci[2], 2),
-            "%"
-          ),
-          check.names = FALSE
-        )
-      })
-    )
-  }
-  
-  
-  # ----------------------------------------------------------
-  # TREATMENT TABLE
-  # ----------------------------------------------------------
-  
-  output$expert_treatment_table <- renderTable({
-    
-    dat <- expert_data()
-    
-    bind_rows(
-      binary_summary(dat, "DEATH", "Mortality"),
-      binary_summary(dat, "HOSP", "Hospitalisation"),
-      binary_summary(dat, "DWHF", "Death or worsening heart failure")
-    )
-    
-  }, striped = TRUE, bordered = TRUE, spacing = "s")
-  
-  
-  # ----------------------------------------------------------
-  # RISK DIFFERENCE AND RELATIVE RISK
-  # ----------------------------------------------------------
   
   output$expert_effect_table <- renderTable({
     
@@ -1587,7 +1357,6 @@ server <- function(input, output, session) {
         ]
         
         placebo <- d[d$group == "Placebo", , drop = FALSE]
-        
         digoxin <- d[d$group == "Digoxin", , drop = FALSE]
         
         n0 <- nrow(placebo)
@@ -1615,8 +1384,10 @@ server <- function(input, output, session) {
         }
         
         rr_ci <- if (
-          e0 > 0 && e1 > 0 &&
-          n0 > e0 && n1 > e1
+          e0 > 0 &&
+          e1 > 0 &&
+          n0 > e0 &&
+          n1 > e1
         ) {
           
           se <- sqrt(
@@ -1644,16 +1415,15 @@ server <- function(input, output, session) {
           
           `Relative risk` = round(rr, 3),
           
-          `95% CI for relative risk` =
-            if (all(is.finite(rr_ci))) {
-              paste0(
-                round(rr_ci[1], 3),
-                " to ",
-                round(rr_ci[2], 3)
-              )
-            } else {
-              "Not estimable with zero cells"
-            },
+          `95% CI for relative risk` = if (all(is.finite(rr_ci))) {
+            paste0(
+              round(rr_ci[1], 3),
+              " to ",
+              round(rr_ci[2], 3)
+            )
+          } else {
+            "Not estimable with zero cells"
+          },
           
           check.names = FALSE
         )
@@ -1664,130 +1434,53 @@ server <- function(input, output, session) {
   
   
   # ----------------------------------------------------------
-  # ANIMATED TREATMENT OUTCOME CHART
+  # ANIMATED TREATMENT OUTCOME GRAPH
   # ----------------------------------------------------------
+  
+  
+  
   
   output$expert_outcome_plot <- renderPlotly({
     
     dat <- expert_data()
     
-    outcome_vars <- c(
-      "Mortality" = "DEATH",
-      "Hospitalisation" = "HOSP",
-      "Death or worsening HF" = "DWHF"
-    )
-    
-    plot_data <- bind_rows(
-      lapply(names(outcome_vars), function(label) {
-        
-        variable <- outcome_vars[[label]]
-        
-        d <- dat[
-          !is.na(dat[[variable]]) & !is.na(dat$group),
-          ,
-          drop = FALSE
-        ]
-        
-        d %>%
-          group_by(group) %>%
-          summarise(
-            Percent = mean(.data[[variable]] == 1) * 100,
-            .groups = "drop"
-          ) %>%
-          mutate(Outcome = label)
-        
-      })
-    )
-    
-    plot_data$Outcome <- factor(
-      plot_data$Outcome,
-      levels = names(outcome_vars)
-    )
+    plot_data <- dat %>%
+      group_by(group) %>%
+      summarise(
+        Mortality = mean(DEATH == 1, na.rm = TRUE) * 100,
+        Hospitalisation = mean(HOSP == 1, na.rm = TRUE) * 100,
+        `Death or worsening HF` = mean(DWHF == 1, na.rm = TRUE) * 100,
+        .groups = "drop"
+      ) %>%
+      pivot_longer(
+        cols = -group,
+        names_to = "Outcome",
+        values_to = "Percentage"
+      )
     
     plot_ly(
       data = plot_data,
-      
-      x = ~Percent,
-      y = ~group,
-      
-      frame = ~Outcome,
-      
-      type = "bar",
-      orientation = "h",
-      
+      x = ~Outcome,
+      y = ~Percentage,
       color = ~group,
-      
+      type = "bar",
       colors = c(
         "Placebo" = "#6e03ab",
         "Digoxin" = "#0b5cbf"
-      ),
-      
-      text = ~paste0(round(Percent, 1), "%"),
-      textposition = "outside",
-      
-      hovertemplate = paste(
-        "<b>%{y}</b>",
-        "<br>Outcome percentage: %{x:.1f}%",
-        "<extra></extra>"
       )
     ) %>%
-      
       layout(
-        title = list(
-          text = "Treatment outcomes",
-          x = 0.05
-        ),
-        
-        xaxis = list(
-          title = "Patients with outcome (%)",
-          rangemode = "tozero"
-        ),
-        
-        yaxis = list(
-          title = ""
-        ),
-        
+        title = "Treatment outcomes by group",
         barmode = "group",
-        
-        legend = list(
-          orientation = "h",
-          x = 0,
-          y = -0.25
-        ),
-        
-        margin = list(
-          l = 70,
-          r = 35,
-          t = 55,
-          b = 60
-        )
-      ) %>%
-      
-      animation_opts(
-        frame = 1500,
-        transition = 500,
-        easing = "cubic-in-out",
-        redraw = FALSE
-      ) %>%
-      
-      animation_button(
-        x = 0.05,
-        y = -0.35
-      ) %>%
-      
-      animation_slider(
-        currentvalue = list(
-          prefix = "Outcome: "
-        ),
-        x = 0.2,
-        y = -0.35
+        xaxis = list(title = ""),
+        yaxis = list(title = "Patients with outcome (%)")
       )
     
   })
   
   
   # ----------------------------------------------------------
-  # STATISTICAL TESTS
+  # 4. STATISTICAL TESTS
   # ----------------------------------------------------------
   
   output$expert_tests_table <- renderTable({
@@ -1825,13 +1518,11 @@ server <- function(input, output, session) {
         Statistic = round(unname(test$statistic), 3),
         df = unname(test$parameter),
         `p-value` = signif(test$p.value, 4),
-        
         Interpretation = ifelse(
           test$p.value < 0.05,
           "Evidence of an association (p < 0.05)",
           "No statistically significant association (p ≥ 0.05)"
         ),
-        
         check.names = FALSE
       )
     }
@@ -1869,13 +1560,11 @@ server <- function(input, output, session) {
         Statistic = round(unname(test$statistic), 3),
         df = round(unname(test$parameter), 2),
         `p-value` = signif(test$p.value, 4),
-        
         Interpretation = ifelse(
           test$p.value < 0.05,
           "Evidence of a difference (p < 0.05)",
           "No statistically significant difference (p ≥ 0.05)"
         ),
-        
         check.names = FALSE
       )
     }
@@ -1890,10 +1579,6 @@ server <- function(input, output, session) {
     
   }, striped = TRUE, bordered = TRUE, spacing = "s")
   
-  
-  # ----------------------------------------------------------
-  # P-VALUE CHART
-  # ----------------------------------------------------------
   
   output$expert_pvalue_plot <- renderPlot({
     
@@ -1916,12 +1601,18 @@ server <- function(input, output, session) {
       ),
       
       "Age difference" = tryCatch(
-        t.test(AGE ~ group, data = dat)$p.value,
+        t.test(
+          AGE ~ group,
+          data = dat
+        )$p.value,
         error = function(e) NA_real_
       ),
       
       "BMI difference" = tryCatch(
-        t.test(BMI ~ group, data = dat)$p.value,
+        t.test(
+          BMI ~ group,
+          data = dat
+        )$p.value,
         error = function(e) NA_real_
       )
     )
@@ -2003,7 +1694,7 @@ server <- function(input, output, session) {
   
   
   # ----------------------------------------------------------
-  # SURVIVAL ANALYSIS READINESS CHECK
+  # 5. SURVIVAL ANALYSIS READINESS CHECK
   # ----------------------------------------------------------
   
   output$expert_survival_check <- renderTable({
@@ -2026,7 +1717,6 @@ server <- function(input, output, session) {
     
     data.frame(
       Variable = vars,
-      
       Available = vars %in% names(dat),
       
       Non_missing = vapply(
@@ -2042,7 +1732,6 @@ server <- function(input, output, session) {
       ),
       
       Meaning_to_confirm = meanings,
-      
       check.names = FALSE
     )
     
