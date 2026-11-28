@@ -13,6 +13,7 @@ library(tidyr)
 library(bsicons)
 library(plotly)
 library(shinyWidgets)
+library(shinyjs)
 
 
 # ============================================================
@@ -427,7 +428,7 @@ ui <- page_navbar(
     collapsible = FALSE
   ),
   
-  header = tags$style("
+  header = tagList(useShinyjs(), tags$style("
 
     .navbar-brand {
       font-weight: 800;
@@ -611,13 +612,14 @@ ui <- page_navbar(
       }
     }
 
-  "),
+  ")),
   
   # ----------------------------------------------------------
   # SIDEBAR FILTERS
   # ----------------------------------------------------------
   
   sidebar = sidebar(
+    id = "filters",
     open = "closed",
     
     checkboxGroupInput(
@@ -675,6 +677,8 @@ server <- function(input, output) {
       nav_hide("main_nav", "Who benefited?")
       nav_show("main_nav", "Expert analysis")
       nav_select("main_nav", "Expert analysis")
+      toggle_sidebar("filters", open = FALSE)
+      shinyjs::hide(selector = ".collapse-toggle")
     } else {
       nav_show("main_nav", "Overview")
       nav_show("main_nav", "Patients")
@@ -682,6 +686,7 @@ server <- function(input, output) {
       nav_show("main_nav", "Who benefited?")
       nav_hide("main_nav", "Expert analysis")
       nav_select("main_nav", "Overview")
+      shinyjs::show(selector = ".collapse-toggle")
     }
   })
   
