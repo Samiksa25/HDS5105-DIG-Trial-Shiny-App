@@ -889,7 +889,7 @@ server <- function(input, output, session) {
       Age <- filtered %>%
         ggplot( aes(x=AGE, fill=group)) +
         geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5) +
-        scale_fill_manual(values=c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
         theme_ipsum() +
         coord_cartesian(xlim = c(20, 95)) +
         labs(title = "How old were the patients?",
@@ -901,7 +901,7 @@ server <- function(input, output, session) {
       Bmi <- filtered %>%
         ggplot( aes(x=BMI, fill=group)) +
         geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 2, na.rm = TRUE) +
-        scale_fill_manual(values=c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
         theme_ipsum() +
         coord_cartesian(xlim = c(10, 60)) +
         labs(title = "Body weight of the patients",
@@ -913,7 +913,7 @@ server <- function(input, output, session) {
       HR <- filtered %>%
         ggplot( aes(x=HEARTRTE, fill=group)) +
         geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5, na.rm = TRUE) +
-        scale_fill_manual(values=c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
         theme_ipsum() +
         coord_cartesian(xlim = c(30, 160)) +
         labs(title = "What were the patients' heart rates?",
@@ -930,7 +930,7 @@ server <- function(input, output, session) {
              x = "Blood pressure(mmHg)",
              y = "Number of patients",
              fill = "") +
-        scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
         annotate("text", x = 190, y = 300, label = "Systolic") +
         annotate("text", x = 40, y = -300, label = "Diastolic") +
         scale_y_continuous(labels = abs)
@@ -940,7 +940,7 @@ server <- function(input, output, session) {
       Race <- ggplot(filtered, aes(x = race, fill = group)) +
         geom_bar(position = "dodge", color = "#e9ecef", width = 0.4) +
         coord_flip() +
-        scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
         theme_ipsum() + theme(legend.position = "bottom") +
         guides(fill = guide_legend(reverse = TRUE)) +
         labs(title = "Ethnic background of the patients",
@@ -963,7 +963,7 @@ server <- function(input, output, session) {
       History <- ggplot(history_long, aes(x = reorder(condition, percent), y = percent, fill = group)) +
         geom_col(position = "dodge", color = "#e9ecef", width = 0.4) +
         coord_flip() +
-        scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
         theme_ipsum() +
         theme(legend.position = "bottom") +
         guides(fill = guide_legend(reverse = TRUE)) +
@@ -1101,7 +1101,7 @@ server <- function(input, output, session) {
           width = 0.4
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         theme_ipsum() +
         theme(
@@ -1154,7 +1154,7 @@ server <- function(input, output, session) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
@@ -1208,7 +1208,7 @@ server <- function(input, output, session) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
@@ -1253,7 +1253,7 @@ server <- function(input, output, session) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
