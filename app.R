@@ -618,6 +618,9 @@ ui <- page_navbar(
       color: white !important;
     }
     #mode .btn:focus { box-shadow: none; }
+    .tab-pane[data-value='Patients'] .modebar,
+    .tab-pane[data-value='Did it help?'] .modebar,
+    .tab-pane[data-value='Who benefited?'] .modebar { display: none !important; }
 
     .navbar {
       box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
@@ -865,7 +868,7 @@ server <- function(input, output, session) {
              x = "Age (years)",
              y = "Number of patients",
              fill = "")
-      Age
+      ggplotly(Age) %>% style(hovertemplate = "Age: %{x}<br>Patients: %{y}<extra>%{fullData.name}</extra>")
     } else if (input$patient_chart == "BMI"){
       Bmi <- filtered %>%
         ggplot( aes(x=BMI, fill=group)) +
@@ -877,7 +880,7 @@ server <- function(input, output, session) {
              x = "BMI (kg/m²)",
              y = "Number of patients",
              fill = "")
-      Bmi
+      ggplotly(Bmi) %>% style(hovertemplate = "BMI: %{x}<br>Patients: %{y}<extra>%{fullData.name}</extra>")
     } else if (input$patient_chart == "Heart rate"){ 
       HR <- filtered %>%
         ggplot( aes(x=HEARTRTE, fill=group)) +
@@ -889,7 +892,7 @@ server <- function(input, output, session) {
              x = "Heart rate (beats/min)",
              y = "Number of patients",
              fill = "")
-      HR
+      ggplotly(HR) %>% style(hovertemplate = "Heart rate: %{x} bpm<br>Patients: %{y}<extra>%{fullData.name}</extra>")
     }else if (input$patient_chart == "Blood pressure"){
       BP <- ggplot(filtered) +
         geom_histogram( aes(x = SYSBP, y = after_stat(count), fill= group), color="#e9ecef",alpha = 0.6, position = 'identity', binwidth = 10, na.rm = TRUE) +
@@ -916,7 +919,7 @@ server <- function(input, output, session) {
              x = "",
              y = "Number of patients",
              fill = "")
-      Race
+      ggplotly(Race) %>% style(hovertemplate = "%{y}<br>Patients: %{x}<extra>%{fullData.name}</extra>")
     }else if (input$patient_chart == "Medical history"){
       history <- filtered %>%
         group_by(group) %>%
@@ -940,7 +943,7 @@ server <- function(input, output, session) {
              x = "",
              y = "Percentage of patients (%)",
              fill = "")
-      History  }
+      ggplotly(History) %>% style(hovertemplate = "%{y}<br>%{x:.1f}% of patients<extra>%{fullData.name}</extra>")  }  
   })
   
   output$expert_age_plot <- renderPlotly({
@@ -1032,7 +1035,7 @@ server <- function(input, output, session) {
   # DID IT HELP?
   # ----------------------------------------------------------
   
-  output$effect_plot <- renderPlot({
+  output$effect_plot <- renderPlotly({
     
     filtered <- filtered_data()
     
@@ -1054,7 +1057,7 @@ server <- function(input, output, session) {
           values_to = "percent"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         effect_long,
         aes(x = outcome, y = percent, fill = group)
       ) +
@@ -1084,7 +1087,7 @@ server <- function(input, output, session) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
       
     } else if (input$effect_chart == "Over time") {
       
@@ -1107,7 +1110,7 @@ server <- function(input, output, session) {
           values_to = "percent"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         by_year_long,
         aes(x = time, y = percent, fill = group)
       ) +
@@ -1138,7 +1141,7 @@ server <- function(input, output, session) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
     }
     
   })
@@ -1148,7 +1151,7 @@ server <- function(input, output, session) {
   # WHO BENEFITED?
   # ----------------------------------------------------------
   
-  output$benefit_plot <- renderPlot({
+  output$benefit_plot <- renderPlotly({
     
     filtered <- filtered_data()
     
@@ -1161,7 +1164,7 @@ server <- function(input, output, session) {
           .groups = "drop"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         benefit,
         aes(x = age_group, y = percent, fill = group)
       ) +
@@ -1195,7 +1198,7 @@ server <- function(input, output, session) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
       
     } else if (input$benefit_chart == "By diabetes") {
       
@@ -1206,7 +1209,7 @@ server <- function(input, output, session) {
           .groups = "drop"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         benefit_diab,
         aes(x = diabetes, y = percent, fill = group)
       ) +
@@ -1237,7 +1240,7 @@ server <- function(input, output, session) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
     }
     
   })
