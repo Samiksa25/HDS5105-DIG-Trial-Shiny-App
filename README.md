@@ -1,36 +1,27 @@
 ![DIG Trial banner](docs/images/banner.png)
 
 # DIG Trial Explorer
-<!-- 一句话：这个项目是什么 -->
-An interactive Shiny app exploring whether digoxin helped people with heart failure.
 
-<!-- 三个核心数字，GitHub 上会显示成一个三列表格 -->
-| 6,800 | 8 fewer | Same |
-|:---:|:---:|:---:|
-| patients | heart-failure admissions per 100 | survival in both groups |
+An interactive Shiny app that turns the Digitalis Investigation Group (DIG) trial into clear, explorable charts. In the trial, 6,800 people with heart failure were randomly given either digoxin or a placebo. The app shows who took part, what changed, and who benefited most.
 
 ## Overview
-Digoxin, a drug derived from the foxglove plant, has been used to treat heart failure for over two centuries. The Digitalis Investigation Group (DIG) trial tested whether it actually helps: 6,800 patients with heart failure were randomly given digoxin or a placebo and followed for up to five years. This app turns the trial data into interactive charts, so anyone can explore what happened to these patients, whether digoxin made a difference, and who benefited most.
 
-## What the app does
-<!-- 应用回答的几个问题，每条一句话 -->
-- Who were the patients?
-- Did digoxin work?
-- Who benefited most?
-- Is it safe?
+The app has two modes. **Basic** mode is written for non-specialists: it explains the trial's findings in plain language, using simple histograms and bar charts. **Expert** mode is for readers who want more detail, including statistical tests and effect estimates. Use the Basic / Expert switch in the top-right corner to move between them.
 
-<!-- 一句话介绍双模式 -->
-Switch between **Simple** mode for everyone and **Expert** mode for clinicians.
+Below is a preview of the Basic mode home page.
 
-## Data
-<!-- 数据来源，一两句话 -->
-Digitalis Investigation Group (DIG) trial: 6,800 heart-failure patients randomised to digoxin or placebo.
+![Basic mode home page](docs/images/overview.png)
 
-## Run the app
-<!-- 在线链接 + 本地运行方法 -->
-- Live app: 
-- Locally: 
+## Basic mode: two simple charts
 
----
-<!-- 图片来源，用了 Unsplash 的照片就注明一下 -->
-Banner photo by Bermix Studio on Unsplash.
+Basic mode is designed for people with no medical or statistics background. To keep it simple and easy to read, it uses only two familiar chart types: histograms and bar charts. Most people have seen these before, so readers can focus on what the data shows rather than on learning how to read the chart.
+
+**Histograms** show who the patients were. When the digoxin and placebo groups overlap, it means the two groups were similar at the start, so the comparison is fair.
+
+![Age histogram comparing the digoxin and placebo groups](docs/images/histogram.png)
+
+**Bar charts** show what happened. Placing the two groups side by side makes the difference easy to see at a glance.
+
+![Who benefited most? Results by age group](docs/images/benefit.png)
+
+Hover over any chart to see the exact numbers.
