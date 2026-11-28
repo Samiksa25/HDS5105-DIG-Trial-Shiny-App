@@ -50,820 +50,375 @@ dig$diabetes <- factor(
 # 3. USER INTERFACE
 # ============================================================
 
-ui <- page_navbar(
-  
-  # ----------------------------------------------------------
-  # OVERVIEW
-  # ----------------------------------------------------------
-  
-  nav_panel(
-    title = "Overview",
-    
-    div(
-      class = "overview-wrap",
-      
-      div(
-        style = "padding: 40px 0 44px;",
-        
-        span("The DIG Trial", class = "hero-pill"),
-        
-        h1(
-          class = "hero-title",
-          span("Digoxin:", style = "font-style: italic;"),
-          " an old medicine, ",
-          span("a fair test", class = "hero-accent")
-        ),
-        
-        p(
-          "See who took part, what changed, and who benefited most.",
-          class = "hero-sub"
-        )
-      ),
-      
-      layout_columns(
-        col_widths = c(5, 7),
-        gap = "40px",
-        
-        div(
-          class = "banner-wrap card-link",
-          onclick = "Shiny.setInputValue('go_expert', Math.random())",
-          tags$img(
-            src = "banner.png",
-            style = "width: 100%; height: 100%; max-height: 440px;
-            object-fit: cover; border-radius: 12px;"
-          ),
-          span(class = "read-more", "Read more", bs_icon("arrow-right"))
-        ),
-        
-        layout_column_wrap(
-          width = 1,
-          gap = "24px",
-          
-          value_box(height = "130px", class = "card-link",
-                    onclick = "Shiny.setInputValue('go_page', 'Patients', {priority: 'event'})",
-                    showcase_layout = showcase_left_center(width = 0.2),
-<<<<<<< HEAD
-                    title = "Patients in the trial",
-                    value = "6,800",
-                    showcase = bs_icon("people"),
-                    div(class = "vb-deco", bs_icon("people-fill"))
-=======
-            title = "Patients in the trial",
-            value = "6,800",
-            showcase = bs_icon("people"),
-            div(class = "vb-deco", bs_icon("people-fill"))
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-          ),
-          
-          value_box(height = "130px", class = "card-link",
-                    onclick = "Shiny.setInputValue('go_page', 'Did it help?', {priority: 'event'})",
-                    showcase_layout = showcase_left_center(width = 0.2),
-<<<<<<< HEAD
-                    title = "Heart failure hospital stays",
-                    value = span(
-                      style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
-                      "35% → 27%",
-                      span(class = "badge-down badge-right",
-                           span("↓", style = "font-size: 2.2em; font-weight: 700;"),
-                           span(span("8", class = "badge-num"), HTML("percentage<br>points")))
-                    ),
-                    showcase = bs_icon("hospital", style = "color: #0b5cbf;")
-=======
-            title = "Heart failure hospital stays",
-            value = span(
-              style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
-              "35% → 27%",
-              span(class = "badge-down badge-right",
-                   span("↓", style = "font-size: 2.2em; font-weight: 700;"),
-                   span(span("8", class = "badge-num"), HTML("percentage<br>points")))
-            ),
-            showcase = bs_icon("hospital", style = "color: #0b5cbf;")
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-          ),
-          
-          value_box(height = "130px",
-                    class = "vb-wave card-link",
-                    onclick = "Shiny.setInputValue('go_page', 'Who benefited?', {priority: 'event'})",
-                    showcase_layout = showcase_left_center(width = 0.2),
-<<<<<<< HEAD
-                    title = "Lower risk of hospital stay",
-                    value = span("23% "),
-                    showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
-=======
-            title = "Lower risk of hospital stay",
-            value = span("23% "),
-            showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-          )  
-        )
-      )
-    )
-  ),
-
-  
-  
-  
-  # ----------------------------------------------------------
-  # PATIENTS
-  # ----------------------------------------------------------
-  
-  nav_panel(
-    title = "Patients",
-    
-    selectInput(
-      inputId = "patient_chart",
-      label = "What would you like to see?",
-      choices = c(
-        "Age",
-        "BMI",
-        "Heart rate",
-        "Blood pressure",
-        "Race",
-        "Medical history"
-      )
-    ),
-    
-    plotlyOutput("age_plot", height = "460px")
-  ),
-  
-  
-  # ----------------------------------------------------------
-  # DID IT HELP?
-  # ----------------------------------------------------------
-  
-  nav_panel(
-    title = "Did it help?",
-    
-    selectInput(
-      inputId = "effect_chart",
-      label = "What would you like to see?",
-      choices = c("Overall result", "Over time")
-    ),
-    
-    plotlyOutput("effect_plot", height = "460px")
-  ),
-  
-  
-  # ----------------------------------------------------------
-  # WHO BENEFITED?
-  # ----------------------------------------------------------
-  
-  nav_panel(
-    title = "Who benefited?",
-    
-    selectInput(
-      inputId = "benefit_chart",
-      label = "What would you like to see?",
-      choices = c("By age", "By diabetes")
-    ),
-    
-    plotlyOutput("benefit_plot", height = "460px")
-  ),
-  
-  
-  # ----------------------------------------------------------
-  # EXPERT MODE SWITCH
-  # ----------------------------------------------------------
-  
-  nav_item(
-    div(
-      style = "position: absolute; right: 40px; top: 50%;
-      transform: translateY(-50%); margin-top: 8px;",
-      radioGroupButtons(inputId = "mode", choices = c("Basic", "Expert"), 
-                        selected = "Basic")
-<<<<<<< HEAD
-    )
-  ),
-=======
-      )
-    ),
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-  
-  
-  # ----------------------------------------------------------
-  # EXPERT ANALYSIS - SINGLE DASHBOARD PAGE
-  # ----------------------------------------------------------
-  
-  
-  nav_panel(
-    title = "Expert analysis",
-<<<<<<< HEAD
-    
-    div(
-      class = "expert-dashboard",
-=======
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-      
-      div(
-        class = "dashboard-header",
-        h2("DIG Trial Dashboard"),
-        p("Explore patient characteristics, treatment outcomes and statistical findings.")
-      ),
-      
-      # KPI CARDS
-      
-      fluidRow(
-        column(
-          3,
-          div(
-            class = "dashboard-kpi",
-            div(class = "kpi-icon", bs_icon("people")),
-            h6("Total patients"),
-            h3(textOutput("kpi_patients"))
-          )
-        ),
-        column(
-          3,
-          div(
-            class = "dashboard-kpi",
-            div(class = "kpi-icon", bs_icon("hospital")),
-            h6("Hospitalisations"),
-            h3(textOutput("kpi_hospitalisations"))
-          )
-        ),
-        column(
-          3,
-          div(
-            class = "dashboard-kpi",
-            div(class = "kpi-icon", bs_icon("heart-pulse")),
-            h6("Overall mortality"),
-            h3(textOutput("kpi_mortality"))
-          )
-        ),
-        column(
-          3,
-          div(
-            class = "dashboard-kpi",
-            div(class = "kpi-icon", bs_icon("activity")),
-            h6("Complete records"),
-            h3(textOutput("kpi_complete"))
-          )
-        )
-      ),
-      
-      # FIRST ROW: TREATMENT OUTCOMES
-      
-      fluidRow(
-        column(
-          12,
-          div(
-            class = "dashboard-panel",
-            h4("Treatment outcomes"),
-            p("Comparison of observed outcomes in the Placebo and Digoxin groups."),
-            plotlyOutput("expert_outcome_plot", height = "380px"),
-            tableOutput("debug_outcome"),
-            div(
-              class = "chart-explanation",
-              "How to read this: The chart compares the percentage of patients experiencing each outcome. Lower percentages indicate fewer recorded events."
-            )
-          )
-        )
-<<<<<<< HEAD
-      ),
-      
-      # SECOND ROW: AGE AND BMI
-      
-      fluidRow(
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Age distribution"),
-            plotlyOutput("expert_age_plot", height = "420px"),
-            div(
-              class = "chart-explanation",
-              "How to read this: The curves show where patients' ages are concentrated. Similar curves suggest similar age distributions."
-            )
-          )
-        ),
-        
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("BMI distribution"),
-            plotlyOutput("expert_bmi_plot", height = "420px"),
-            div(
-              class = "chart-explanation",
-              "How to read this: The violin width shows where values are concentrated. The box shows the middle half of BMI values."
-            )
-          )
-        )
-      ),
-      
-      # THIRD ROW: DEMOGRAPHICS AND DATA QUALITY
-      
-      fluidRow(
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Patient characteristics"),
-            p("Distribution of patients across demographic categories."),
-            plotlyOutput("expert_demographic_plot", height = "420px"),
-            div(
-              class = "chart-explanation",
-              "How to read this: The percentages show the composition of each treatment group by sex, race, diabetes and hypertension."
-            )
-          )
-        ),
-        
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Data quality"),
-            h5(textOutput("expert_complete_records")),
-            plotlyOutput("expert_missing_plot", height = "420px"),
-            div(
-              class = "chart-explanation",
-              "How to read this: Longer bars indicate variables with more missing information. Variables with no missing values are excluded from this chart."
-            )
-          )
-        )
-      ),
-      
-      # FOURTH ROW: TREATMENT TABLES
-      
-      fluidRow(
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Outcome counts and percentages"),
-            tableOutput("expert_treatment_table")
-          )
-        ),
-        
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Treatment effect estimates"),
-            tableOutput("expert_effect_table"),
-            div(
-              class = "chart-explanation",
-              "Risk difference compares the two groups in percentage points. Relative risk compares their event risks."
-            )
-          )
-        )
-      ),
-      
-      # FIFTH ROW: STATISTICAL ANALYSIS
-      
-      fluidRow(
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Statistical evidence"),
-            plotOutput("expert_pvalue_plot", height = "280px"),
-            div(
-              class = "chart-explanation",
-              "How to read this: The dashed line marks p = 0.05. Points to the left are below this commonly used threshold."
-            )
-          )
-        ),
-        
-        column(
-          6,
-          div(
-            class = "dashboard-panel",
-            h4("Statistical test results"),
-            tableOutput("expert_tests_table"),
-            div(
-              class = "chart-explanation",
-              "A p-value below 0.05 is commonly considered statistically significant. It does not measure the size or importance of an effect."
-            )
-          )
-        )
-      ),
-      
-      # SIXTH ROW: SURVIVAL ANALYSIS
-      
-      fluidRow(
-        column(
-          12,
-          div(
-            class = "dashboard-panel",
-            h4("Survival analysis data checks"),
-            p("Follow-up time and censoring information must be verified before survival curves or a Cox model can be calculated."),
-            tableOutput("expert_survival_check")
-          )
-        )
-      )
-    )
-  ),
-=======
-      )
-    ),
-    
-  # NAVIGATION BAR SETTINGS
->>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
-  
-  # NAVIGATION BAR SETTINGS
-  
-  
-  
-  # ----------------------------------------------------------
-  # NAVIGATION BAR SETTINGS
-  # ----------------------------------------------------------
-  
-  title = tagList(bs_icon("heart-pulse", style = "color: #0b5cbf;"), " DIG Trial explorer"),
-  id = "main_nav",
-  
+ui <- page_fillable(
+  title = "DIG Trial Explorer",
   theme = bs_theme(
     version = 5,
-    bootswatch = "minty",
-    primary = "#315c9b",
-    bg = "#f4f7fb",
-    fg = "#253247"
+    bg = "#0b1224",
+    fg = "#e5eaf5",
+    primary = "#35bdf2",
+    secondary = "#bd82ef"
   ),
   
-  navbar_options = navbar_options(
-    collapsible = FALSE
-  ),
-  
-  header = tagList(useShinyjs(), tags$style("
-
-    .navbar-brand {
-      font-weight: 800;
-      letter-spacing: 0.5px;
-    }
-
-    .navbar-collapse {
-      justify-content: center;
-    }
-
-    .navbar-nav {
-      flex-grow: 0;
-      margin: 0 auto;
-      background: white;
-      border-radius: 999px;
-      padding: 6px;
-      gap: 16px;
-    }
-
-    .navbar-nav .nav-link {
-      border-radius: 999px;
-      padding: 10px 28px !important;
-      color: #0b5cbf !important;
-    }
-
-    .navbar-nav .nav-link.active {
-      background: #0b5cbf;
-      color: white !important;
-    }
-
-    .overview-wrap {
-      max-width: 1100px;
-      margin: 0 auto !important;
-      padding: 0 24px 24px;
-    }
-    .hero-pill {
-      display: inline-block; background: #dbe7fb; color: #0b5cbf;
-      font-weight: 600; font-size: 15px; padding: 6px 18px;
-      border-radius: 999px; margin-bottom: 18px;
-    }
-    .hero-title {
-      font-weight: 800; font-size: 3rem; color: #10204a;
-      letter-spacing: -0.5px; margin-bottom: 14px;
-    }
-    .hero-accent {
-      position: relative; font-style: italic; padding-right: 6px;
-      background: linear-gradient(90deg, #1d5fd6, #4a8af0);
-      -webkit-background-clip: text; background-clip: text; color: transparent;
-    }
-    .hero-accent::after {
-      content: ''; position: absolute; left: 10%; right: -15%; bottom: -6px;
-      height: 4px; border-radius: 50%;
-      background: linear-gradient(90deg, transparent, rgba(74, 138, 240, .55), transparent);
-    }
-    .hero-sub { color: #1e2a44; font-size: 20px; margin: 0; }
-
-      body {
-      background:
-        radial-gradient(circle at 10% 90%, rgba(11, 92, 191, .12), transparent 40%),
-        radial-gradient(circle at 90% 10%, rgba(11, 92, 191, .10), transparent 35%),
-        #f4f7fb;
-      background-attachment: fixed;
-      color: #253247;
-    }
-    .badge-down {
-      display: inline-flex; align-items: center; gap: 10px;
-      white-space: normal; text-align: left; line-height: 1.1;
-      background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #15803d;
-      border-radius: 18px; padding: 10px 16px;
-      font-size: 0.3em; font-weight: 600;
-      box-shadow: 0 4px 14px rgba(21, 128, 61, .15);
-    }
-    .badge-num { display: block; font-size: 2em; font-weight: 800; }
-    .vb-deco {
-      position: absolute; right: 20px; bottom: -28px;
-      font-size: 150px; line-height: 1; color: #0b5cbf; opacity: .18;
-      pointer-events: none;
-    }
-       .vb-wave {
-      background:
-        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 130%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M90 130 C170 120 210 70 290 62 S370 35 400 28 L400 130 Z%22 fill=%22rgba(59,130,246,0.12)%22/%3E%3Cpath d=%22M170 130 C240 122 280 92 330 88 S385 72 400 70 L400 130 Z%22 fill=%22rgba(59,130,246,0.20)%22/%3E%3C/svg%3E')
-          no-repeat right bottom / 100% 100%,
-        white !important;
-       }
+  navset_pill_list(
+    id = "main_nav",
     
-    .bslib-value-box {
-      border-radius: 20px !important; overflow: hidden;
-      box-shadow: 0 8px 24px rgba(30, 55, 90, .08);
-    }
-    .bslib-value-box .value-box-showcase { color: #0b5cbf; }
-    .bslib-value-box .value-box-showcase .bi { width: 60px; height: 60px; }
-    .bslib-value-box .value-box-value {
-      font-size: 2.8rem !important;
-      font-weight: 800;
-      color: #1e2a44;
-      line-height: 1.1;
-    }
-    .badge-right {
-      position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
-    }
-        /* SIDEBAR */
-    #filters {
-      background:
-        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 140%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M0 140 L0 90 C60 60 120 110 190 85 S270 50 300 60 L300 140 Z%22 fill=%22rgba(59,130,246,0.10)%22/%3E%3Cpath d=%22M0 140 L0 115 C70 95 140 130 210 108 S280 90 300 95 L300 140 Z%22 fill=%22rgba(59,130,246,0.16)%22/%3E%3C/svg%3E')
-          no-repeat left bottom / 100% 140px,
-        linear-gradient(180deg, #f8fbff 0%, #eaf2fd 100%) !important;
-      border-right: none !important;
-    }
-    #filters .sidebar-content { background: transparent !important; position: relative; }
-    .sidebar-heart {
-      position: absolute; right: -20px; bottom: 10px; z-index: 0;
-      font-size: 180px; line-height: 1; color: #0b5cbf; opacity: .08;
-      pointer-events: none;
-    }
-    .sidebar .accordion { position: relative; z-index: 1; }
-    .sidebar .shiny-input-container { margin-bottom: 0 !important; }
-    .sidebar .shiny-options-group {
-      display: flex; flex-direction: column; gap: 14px;
-    }
-    .sidebar .checkbox { margin: 0; }
-    .sidebar .checkbox label {
-      display: flex; align-items: center; gap: 10px; margin: 0;
-    }
-    .sidebar .checkbox label,
-    .sidebar .checkbox span { color: #10204a !important; font-size: 1.05rem; }
-    .sidebar input[type='checkbox'] {
-      width: 1.25em; height: 1.25em; margin: 0; accent-color: #1d6ae5;
-    }
-    .sidebar input[type='checkbox']:checked {
-      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
-    }
-    .filter-head {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 1.4rem; font-weight: 800; color: #10204a; margin: 8px 0 12px;
-    }
-    .filter-head .bi { color: #0b5cbf; }
-    .filter-head a { font-size: 0.95rem; font-weight: 500; color: #6b7280; text-decoration: none; }
-    .sidebar .accordion { --bs-accordion-border-width: 0; --bs-accordion-bg: transparent; }
-    .sidebar .accordion-item {
-      background: white; border-radius: 16px !important; overflow: hidden;
-      margin-bottom: 14px; box-shadow: 0 6px 18px rgba(30, 55, 90, .07);
-    }
-    .sidebar .accordion-button,
-    .sidebar .accordion-button:not(.collapsed) {
-      background: white; color: #10204a; font-weight: 700; font-size: 1.1rem;
-      box-shadow: none;
-    }
-    .sidebar .accordion-icon { color: #0b5cbf; font-size: 1.3em; }
-    .sidebar .accordion-body {
-      background: #f3f7fd; border-radius: 12px; margin: 0 12px 12px; padding: 16px 18px;
-    }
-    .sidebar .form-check-input {
-      width: 1.25em; height: 1.25em; border-radius: 6px;
-    }
-    .sidebar .form-check-input:checked {
-      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
-    }
-    .sidebar .form-check-label { font-size: 1.05rem; color: #10204a !important; }
-    .irs--shiny .irs-bar {
-      background: linear-gradient(90deg, #60a5fa, #0b5cbf); border: none;
-    }
-    .irs--shiny .irs-handle { background: white; border: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
-    .irs--shiny .irs-from, .irs--shiny .irs-to, .irs--shiny .irs-single {
-      background: #0b5cbf; border-radius: 8px; font-weight: 600; padding: 3px 8px;
+    nav_panel(
+      "Overview",
+      div(
+        class = "dashboard-content",
+        h2("Trial at a glance"),
+        uiOutput("overview_kpis"),
+        
+        layout_columns(
+          col_widths = c(6, 6),
+          card(
+            card_header("Baseline"),
+            tableOutput("overview_baseline"),
+            p(class = "small-note",
+              "A comparison of patient characteristics at baseline.")
+          ),
+          card(
+            card_header("Outcomes"),
+            plotOutput("overview_outcomes_plot", height = "190px"),
+            p(class = "small-note",
+              "Risk differences compare Digoxin with Placebo.")
+          )
+        ),
+        
+        layout_columns(
+          col_widths = c(6, 6),
+          card(
+            card_header("Survival"),
+            p(
+              "The survival data-readiness checks are available on the Survival page.",
+              class = "small-note"
+            )
+          ),
+          card(
+            card_header("Subgroups"),
+            p(
+              "Compare treatment outcomes by age or diabetes on the Subgroups page.",
+              class = "small-note"
+            )
+          )
+        ),
+        
+        card(
+          card_header("Safety"),
+          p(
+            "Safety event comparisons are available on the Safety page.",
+            class = "small-note"
+          )
+        ),
+        
+        div(
+          class = "dashboard-legend",
+          span(class = "legend-blue"), " Digoxin",
+          span(class = "legend-purple"), " Placebo"
+        )
+      )
+    ),
+    
+    nav_panel(
+      "Baseline",
+      div(
+        class = "dashboard-content",
+        h2("Baseline characteristics"),
+        card(
+          card_header("Patient characteristics"),
+          plotlyOutput("expert_demographic_plot", height = "380px")
+        ),
+        layout_columns(
+          col_widths = c(6, 6),
+          card(
+            card_header("Age distribution"),
+            plotlyOutput("expert_age_plot", height = "300px")
+          ),
+          card(
+            card_header("BMI distribution"),
+            plotlyOutput("expert_bmi_plot", height = "300px")
+          )
+        )
+      )
+    ),
+    
+    nav_panel(
+      "Outcomes",
+      div(
+        class = "dashboard-content",
+        h2("Treatment outcomes"),
+        card(
+          card_header("Treatment outcomes by group"),
+          plotlyOutput("expert_outcome_plot", height = "380px")
+        ),
+        layout_columns(
+          col_widths = c(6, 6),
+          card(
+            card_header("Relative risk and risk difference"),
+            tableOutput("expert_effect_table")
+          ),
+          card(
+            card_header("Statistical test results"),
+            tableOutput("expert_tests_table")
+          )
+        ),
+        card(
+          card_header("P-value comparison"),
+          plotOutput("expert_pvalue_plot", height = "280px")
+        )
+      )
+    ),
+    
+    nav_panel(
+      "Survival",
+      div(
+        class = "dashboard-content",
+        h2("Survival analysis"),
+        card(
+          card_header("Survival data readiness"),
+          tableOutput("expert_survival_check")
+        ),
+        p(
+          class = "small-note",
+          "Kaplan-Meier and Cox regression analyses should only be added ",
+          "after the event and censoring definitions have been verified."
+        )
+      )
+    ),
+    
+    nav_panel(
+      "Subgroups",
+      div(
+        class = "dashboard-content",
+        h2("Subgroup analysis"),
+        selectInput(
+          "benefit_chart",
+          "Select subgroup:",
+          choices = c("By age", "By diabetes")
+        ),
+        card(
+          card_header("Treatment outcomes across subgroups"),
+          plotlyOutput("benefit_plot", height = "380px")
+        )
+      )
+    ),
+    
+    nav_panel(
+      "Safety",
+      div(
+        class = "dashboard-content",
+        h2("Safety outcomes"),
+        card(
+          card_header("Adverse events by treatment group"),
+          plotOutput("overview_safety_plot", height = "300px")
+        ),
+        card(
+          card_header("Data quality"),
+          plotlyOutput("expert_missing_plot", height = "300px")
+        )
+      )
+    )
+  ),
+  
+  header = tags$style(HTML("
+    body {
+      background: #0b1224;
+      color: #e5eaf5;
+      font-family: Arial, sans-serif;
     }
 
-    /* BASIC / EXPERT TOGGLE */
-    #mode .btn-group-container-sw {
-      border: 1.5px solid #2f6fe0; border-radius: 999px; overflow: hidden;
-      background: white; box-shadow: 0 4px 14px rgba(30, 55, 90, .10);
+    .bslib-page-fill {
+      padding: 14px;
     }
-    #mode .btn {
-      border: none !important; border-radius: 0 !important;
-      background: white; color: #1d3f8a; font-weight: 600; padding: 8px 26px;
-    }
-    #mode .btn.active,
-    #mode .btn:has(input:checked),
-    #mode .btn-check:checked + .btn {
-      background: linear-gradient(90deg, #3b7bea, #1d4fb8) !important;
-      color: white !important;
-    }
-    #mode .btn:focus { box-shadow: none; }
-    .tab-pane[data-value='Patients'] .modebar,
-    .tab-pane[data-value='Did it help?'] .modebar,
-    .tab-pane[data-value='Who benefited?'] .modebar { display: none !important; }
-    .card-link { cursor: pointer; transition: transform .2s, box-shadow .2s; }
-    .card-link:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 14px 30px rgba(30, 55, 90, .16) !important;
-    }
-    .banner-wrap { position: relative; height: 100%; border-radius: 12px; }
-    .read-more {
-      position: absolute; left: 20px; bottom: 20px;
-      display: inline-flex; align-items: center; gap: 8px;
-      background: rgba(255, 255, 255, .92); color: #0b5cbf;
-      font-weight: 700; padding: 10px 20px; border-radius: 999px;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, .15); transition: all .2s;
-    }
-    .banner-wrap:hover .read-more { background: #0b5cbf; color: white; }
 
-    .navbar {
-      box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
+    .navset-pill-list {
+      display: flex;
+      gap: 20px;
+      min-height: calc(100vh - 28px);
+      background: #0b1224;
+    }
+
+    .navset-pill-list > .nav {
+      flex: 0 0 245px;
+      background: #070e1d;
+      border-radius: 14px 0 0 14px;
+      padding: 105px 10px 20px;
+      position: relative;
+    }
+
+    .navset-pill-list > .nav::before {
+      content: 'DIG Trial Explorer';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      min-height: 85px;
+      padding: 28px 18px;
+      color: white;
+      font-size: 20px;
+      font-weight: 700;
+      border-bottom: 1px solid #25334e;
+    }
+
+    .navset-pill-list > .nav .nav-link {
+      color: #9aa8c2;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin-bottom: 5px;
+      font-size: 16px;
+    }
+
+    .navset-pill-list > .nav .nav-link.active {
+      background: #172746;
+      color: #ffffff;
+      border-left: 4px solid #35bdf2;
+    }
+
+    .navset-pill-list > .tab-content {
+      flex: 1;
+      min-width: 0;
+      padding: 12px 20px;
+      background: #0b1224;
+    }
+
+    .dashboard-content {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+
+    .dashboard-content h2 {
+      font-size: 25px;
+      font-weight: 750;
+      color: #f1f5ff;
+      margin: 5px 0 18px;
     }
 
     .card {
-      border: 1px solid #e5eaf2;
-      border-radius: 14px;
-      box-shadow: 0 4px 16px rgba(35, 55, 85, .05);
-      margin-bottom: 12px;
+      background: #121e38;
+      border: 1px solid #263757;
+      border-radius: 18px;
+      color: #e5eaf5;
+      margin-bottom: 16px;
+      box-shadow: none;
     }
 
     .card-header {
-      background: #ffffff;
-      color: #263b5a;
+      background: transparent;
+      color: #f1f5ff;
+      border-bottom: none;
+      font-size: 17px;
       font-weight: 700;
-      border-bottom: 1px solid #edf0f5;
-      padding: 14px 18px;
+      padding: 16px 18px 5px;
     }
 
     .card-body {
-      padding: 18px;
+      padding: 14px 18px 18px;
     }
 
-    /* EXPERT DASHBOARD */
-
-    .expert-dashboard {
-      max-width: 1500px;
-      margin: 0 auto;
-      padding: 24px;
-      background: #edf3fc;
-      border-radius: 20px;
+    .small-note {
+      color: #94a3bd;
+      font-size: 12px;
+      margin-top: 8px;
     }
 
-    .dashboard-header {
-      padding: 12px 4px 22px;
+    .form-label {
+      color: #aab8d0;
     }
 
-    .dashboard-header h2 {
-      font-size: 27px;
-      font-weight: 800;
-      color: #203a60;
-      margin-bottom: 6px;
+    .form-select {
+      background-color: #172746;
+      color: white;
+      border-color: #344767;
     }
 
-    .dashboard-header p {
-      color: #718096;
-      font-size: 14px;
+    table {
+      color: #dce5f5 !important;
     }
 
-    .dashboard-kpi {
-      background: linear-gradient(145deg, #ffffff, #f3f6fd);
-      border: 1px solid #e3eaf5;
-      border-radius: 18px;
-      padding: 20px;
-      min-height: 135px;
+    .table {
+      --bs-table-bg: transparent;
+      --bs-table-color: #dce5f5;
+      --bs-table-border-color: #263757;
+    }
+
+    .dashboard-legend {
+      color: #9aa8c2;
+      padding: 5px 0 20px;
+    }
+
+    .legend-blue, .legend-purple {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 8px;
+    }
+
+    .legend-blue {
+      background: #35bdf2;
+    }
+
+    .legend-purple {
+      background: #bd82ef;
+    }
+
+    .overview-kpi-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
       margin-bottom: 18px;
-      box-shadow: 0 5px 18px rgba(40, 65, 110, 0.06);
     }
 
-    .dashboard-kpi h6 {
-      color: #65748b;
-      font-size: 13px;
-      margin-top: 12px;
-    }
-
-    .dashboard-kpi h3 {
-      color: #203a60;
-      font-weight: 800;
-      font-size: 27px;
-      margin-top: 5px;
-    }
-
-    .kpi-icon {
-      color: #315c9b;
-      font-size: 22px;
-    }
-
-    .dashboard-panel {
-      background: #ffffff;
-      border: 1px solid #e1e9f4;
+    .overview-kpi {
+      background: #121e38;
+      border: 1px solid #263757;
       border-radius: 18px;
       padding: 20px;
-      margin-bottom: 20px;
-      min-height: 100px;
-      box-shadow: 0 5px 18px rgba(40, 65, 110, 0.05);
-      overflow-x: auto;
+      min-height: 120px;
     }
 
-    .dashboard-panel h4 {
-      color: #263b5a;
-      font-size: 16px;
+    .overview-kpi-title {
+      color: #aab8d0;
+      font-size: 15px;
+    }
+
+    .overview-kpi-value {
+      color: #35bdf2;
+      font-size: 34px;
       font-weight: 750;
-      margin-bottom: 8px;
+      margin-top: 3px;
     }
 
-    .dashboard-panel > p {
-      color: #8995a8;
-      font-size: 12px;
-      margin-bottom: 15px;
+    .overview-kpi-placebo {
+      color: #bd82ef;
+      font-size: 15px;
     }
 
-    .chart-explanation {
-      background: #f1f5fc;
-      border-radius: 9px;
-      padding: 11px 13px;
-      margin-top: 12px;
-      color: #61718a;
-      font-size: 12px;
-      line-height: 1.6;
-    }
-
-    .dashboard-panel table {
-      width: 100%;
-      font-size: 12px;
-    }
-
-    .dashboard-panel .table {
-      margin-bottom: 0;
-    }
-
-    .expert-off {
-      background: #edf3fc;
-      padding: 70px 20px;
-      text-align: center;
-      border-radius: 18px;
-      color: #315c9b;
-    }
-
-    @media (max-width: 768px) {
-      .expert-dashboard {
-        padding: 12px;
+    @media(max-width: 850px) {
+      .navset-pill-list {
+        display: block;
       }
 
-      .dashboard-kpi {
-        min-height: 115px;
+      .navset-pill-list > .nav {
+        width: 100%;
+        padding: 85px 10px 10px;
+        border-radius: 14px;
       }
 
-      .dashboard-panel {
-        padding: 14px;
+      .navset-pill-list > .tab-content {
+        padding: 10px 0;
+      }
+
+      .overview-kpi-row {
+        grid-template-columns: 1fr;
       }
     }
-
-  ")),
-  
-  # ----------------------------------------------------------
-  # SIDEBAR FILTERS
-  # ----------------------------------------------------------
-  sidebar = sidebar(
-    id = "filters",
-    open = "closed",
-    width = 300,
-    
-    div(
-      class = "filter-head",
-      span(bs_icon("funnel"), " Filters"),
-      actionLink("reset_filters", tagList(bs_icon("arrow-counterclockwise"), " Reset"))
-    ),
-    
-    accordion(
-      open = TRUE,
-      accordion_panel(
-        title = "Sex", icon = bs_icon("gender-male"),
-        checkboxGroupInput("sex", NULL, choices = c("Male" = 1, "Female" = 2), selected = c(1, 2))
-      ),
-      accordion_panel(
-        title = "Race", icon = bs_icon("people"),
-        checkboxGroupInput("race", NULL, choices = c("White" = 1, "Non-white" = 2), selected = c(1, 2))
-      ),
-      accordion_panel(
-        title = "Age", icon = bs_icon("calendar3"),
-        sliderInput("age", NULL, min = 21, max = 90, value = c(21, 90))
-      )
-    ),
-    div(class = "sidebar-heart", bs_icon("heart-pulse"))
-  )
+  "))
 )
 
 
-# ============================================================
 # 4. SERVER
 # ============================================================
 
@@ -1321,33 +876,6 @@ server <- function(input, output, session) {
   
   expert_data <- reactive({ dig })
   
-  output$debug_outcome <- renderTable({
-    
-    dat <- expert_data()
-    
-    data.frame(
-      Variable = c("DEATH", "HOSP", "DWHF"),
-      Data_type = c(
-        class(dat$DEATH)[1],
-        class(dat$HOSP)[1],
-        class(dat$DWHF)[1]
-      ),
-      Non_missing = c(
-        sum(!is.na(dat$DEATH)),
-        sum(!is.na(dat$HOSP)),
-        sum(!is.na(dat$DWHF))
-      ),
-      Event_count = c(
-        sum(dat$DEATH == 1, na.rm = TRUE),
-        sum(dat$HOSP == 1, na.rm = TRUE),
-        sum(dat$DWHF == 1, na.rm = TRUE)
-      )
-    )
-    
-  })
-  
-  
-  
   # ----------------------------------------------------------
   # DASHBOARD KPI VALUES
   # ----------------------------------------------------------
@@ -1794,7 +1322,6 @@ server <- function(input, output, session) {
   output$expert_outcome_plot <- renderPlotly({
     
     dat <- expert_data()
-    
     outcome_vars <- c(
       "Mortality" = "DEATH",
       "Hospitalisation" = "HOSP",
@@ -1803,12 +1330,8 @@ server <- function(input, output, session) {
     
     plot_data <- bind_rows(
       lapply(names(outcome_vars), function(label) {
-        
         variable <- outcome_vars[[label]]
-        
-        d <- dat %>%
-          filter(!is.na(group), !is.na(.data[[variable]]))
-        
+        d <- dat %>% filter(!is.na(group), !is.na(.data[[variable]]))
         d %>%
           group_by(group) %>%
           summarise(
@@ -1818,51 +1341,41 @@ server <- function(input, output, session) {
             .groups = "drop"
           ) %>%
           mutate(Outcome = label)
-        
       })
     )
     
-    plot_data$group <- factor(
-      plot_data$group,
-      levels = c("Placebo", "Digoxin")
-    )
-    
-    plot_data$Outcome <- factor(
-      plot_data$Outcome,
-      levels = names(outcome_vars)
-    )
+    plot_data$group <- factor(plot_data$group, levels = c("Placebo", "Digoxin"))
+    plot_data$Outcome <- factor(plot_data$Outcome, levels = names(outcome_vars))
     
     plot_ly(
       data = plot_data,
-      x = ~Outcome,
+      x = ~group,
       y = ~Percentage,
+      frame = ~Outcome,
       color = ~group,
       type = "bar",
-      colors = c(
-        "Placebo" = "#6e03ab",
-        "Digoxin" = "#0b5cbf"
-      ),
-      text = ~paste0(
-        round(Percentage, 1), "%",
-        "<br>",
-        Events, " / ", Total, " patients"
-      ),
-      textposition = "outside"
+      colors = c("Placebo" = "#6e03ab", "Digoxin" = "#0b5cbf"),
+      text = ~paste0(round(Percentage, 1), "%<br>", Events, " / ", Total, " patients"),
+      textposition = "outside",
+      hovertemplate = paste(
+        "Treatment: %{x}",
+        "<br>Patients with outcome: %{y:.1f}%",
+        "<br>%{text}",
+        "<extra></extra>"
+      )
     ) %>%
       layout(
         title = "Treatment outcomes by group",
-        xaxis = list(title = ""),
-        yaxis = list(
-          title = "Patients with outcome (%)",
-          rangemode = "tozero"
-        ),
-        barmode = "group"
-      )
+        xaxis = list(title = "Treatment group"),
+        yaxis = list(title = "Patients with outcome (%)", rangemode = "tozero"),
+        barmode = "group",
+        showlegend = FALSE
+      ) %>%
+      animation_opts(frame = 900, transition = 350, redraw = TRUE) %>%
+      animation_slider(currentvalue = list(prefix = "Outcome: ")) %>%
+      animation_button(x = 1, xanchor = "right", y = 0, yanchor = "top")
     
   })
-  
-  
-  
   
   # ----------------------------------------------------------
   # 4. STATISTICAL TESTS
@@ -1968,7 +1481,192 @@ server <- function(input, output, session) {
   
   output$expert_pvalue_plot <- renderPlot({
     
-    dat <- expert_data()
+    dat
+    
+    # ==========================================================
+    # OVERVIEW PAGE
+    # ==========================================================
+    
+    output$overview_kpis <- renderUI({
+      dat <- expert_data()
+      
+      get_rate <- function(variable, group_name) {
+        if (!variable %in% names(dat)) return(NA_real_)
+        
+        d <- dat[
+          !is.na(dat[[variable]]) &
+            !is.na(dat$group) &
+            as.character(dat$group) == group_name,
+          ,
+          drop = FALSE
+        ]
+        
+        if (nrow(d) == 0) return(NA_real_)
+        mean(d[[variable]] == 1, na.rm = TRUE) * 100
+      }
+      
+      make_card <- function(title, digoxin, placebo) {
+        div(
+          class = "overview-kpi",
+          div(class = "overview-kpi-title", title),
+          div(
+            class = "overview-kpi-value",
+            if (is.na(digoxin)) "N/A" else paste0(round(digoxin, 1), "%")
+          ),
+          div(
+            class = "overview-kpi-placebo",
+            if (is.na(placebo)) {
+              "Placebo: N/A"
+            } else {
+              paste0("Placebo: ", round(placebo, 1), "%")
+            }
+          )
+        )
+      }
+      
+      div(
+        class = "overview-kpi-row",
+        make_card(
+          "Death or worsening heart failure",
+          get_rate("DWHF", "Digoxin"),
+          get_rate("DWHF", "Placebo")
+        ),
+        make_card(
+          "All-cause death",
+          get_rate("DEATH", "Digoxin"),
+          get_rate("DEATH", "Placebo")
+        ),
+        make_card(
+          "Digoxin toxicity",
+          get_rate("DIG", "Digoxin"),
+          get_rate("DIG", "Placebo")
+        )
+      )
+    })
+    
+    
+    output$overview_baseline <- renderTable({
+      dat <- expert_data()
+      
+      dat %>%
+        group_by(group) %>%
+        summarise(
+          Patients = n(),
+          `Mean age` = round(mean(AGE, na.rm = TRUE), 1),
+          `Female (%)` = round(mean(SEX == 2, na.rm = TRUE) * 100, 1),
+          `Mean BMI` = round(mean(BMI, na.rm = TRUE), 1),
+          .groups = "drop"
+        )
+    }, striped = FALSE, bordered = FALSE)
+    
+    
+    output$overview_outcomes_plot <- renderPlot({
+      dat <- expert_data()
+      
+      outcome_vars <- c(
+        "Death" = "DEATH",
+        "Any admission" = "HOSP",
+        "Death or worsening HF" = "DWHF"
+      )
+      
+      outcome_data <- bind_rows(lapply(names(outcome_vars), function(label) {
+        variable <- unname(outcome_vars[[label]])
+        if (!variable %in% names(dat)) return(NULL)
+        
+        d <- dat[
+          !is.na(dat[[variable]]) & !is.na(dat$group),
+          ,
+          drop = FALSE
+        ]
+        
+        placebo <- d[as.character(d$group) == "Placebo", , drop = FALSE]
+        digoxin <- d[as.character(d$group) == "Digoxin", , drop = FALSE]
+        
+        if (nrow(placebo) == 0 || nrow(digoxin) == 0) return(NULL)
+        
+        p0 <- mean(placebo[[variable]] == 1, na.rm = TRUE)
+        p1 <- mean(digoxin[[variable]] == 1, na.rm = TRUE)
+        
+        data.frame(Outcome = label, Difference = (p1 - p0) * 100)
+      }))
+      
+      validate(need(nrow(outcome_data) > 0, "Outcome variables are not available."))
+      
+      ggplot(outcome_data, aes(x = Difference, y = Outcome)) +
+        geom_vline(
+          xintercept = 0,
+          linetype = "dashed",
+          colour = "#687895"
+        ) +
+        geom_segment(
+          aes(x = 0, xend = Difference, yend = Outcome),
+          colour = "#526783",
+          linewidth = 1.5
+        ) +
+        geom_point(colour = "#35bdf2", size = 4) +
+        theme_minimal() +
+        theme(
+          text = element_text(colour = "#dce5f5"),
+          axis.title = element_blank(),
+          axis.text = element_text(colour = "#aab8d0"),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "#121e38", colour = NA),
+          panel.background = element_rect(fill = "#121e38", colour = NA)
+        ) +
+        labs(x = NULL, y = NULL)
+    })
+    
+    
+    output$overview_safety_plot <- renderPlot({
+      dat <- expert_data()
+      
+      safety_vars <- c(
+        "Digoxin toxicity" = "DIG",
+        "Ventricular arrhythmia" = "VENA",
+        "Heart attack" = "MI"
+      )
+      
+      safety_data <- bind_rows(lapply(names(safety_vars), function(label) {
+        variable <- unname(safety_vars[[label]])
+        if (!variable %in% names(dat)) return(NULL)
+        
+        dat %>%
+          filter(!is.na(.data[[variable]]), !is.na(group)) %>%
+          group_by(group) %>%
+          summarise(
+            Percentage = mean(.data[[variable]] == 1, na.rm = TRUE) * 100,
+            .groups = "drop"
+          ) %>%
+          mutate(Event = label)
+      }))
+      
+      validate(need(
+        nrow(safety_data) > 0,
+        "No matching safety variables were found. Check DIG, VENA and MI in the dataset."
+      ))
+      
+      ggplot(
+        safety_data,
+        aes(x = Percentage, y = Event, fill = group)
+      ) +
+        geom_col(position = position_dodge(width = 0.7), width = 0.55) +
+        scale_fill_manual(
+          values = c("Digoxin" = "#35bdf2", "Placebo" = "#bd82ef")
+        ) +
+        theme_minimal() +
+        theme(
+          text = element_text(colour = "#dce5f5"),
+          axis.text = element_text(colour = "#aab8d0"),
+          axis.title = element_blank(),
+          panel.grid = element_blank(),
+          plot.background = element_rect(fill = "#121e38", colour = NA),
+          panel.background = element_rect(fill = "#121e38", colour = NA),
+          legend.position = "bottom"
+        ) +
+        labs(fill = NULL, x = NULL, y = NULL)
+    })
+    
+    <- expert_data()
     
     # Calculate p-values automatically
     test_results <- data.frame(
