@@ -12,6 +12,7 @@ library(hrbrthemes)
 library(tidyr)
 library(bsicons)
 library(plotly)
+library(shinyWidgets)
 
 
 # ============================================================
@@ -186,14 +187,10 @@ ui <- page_navbar(
     div(
       style = "position: absolute; right: 40px; top: 50%;
       transform: translateY(-50%); margin-top: 8px;",
-      
-      input_switch(
-        id = "expert_mode",
-        label = "Expert",
-        width = "auto"
+      radioGroupButtons(inputId = "mode", choices = c("Basic", "Expert"), 
+                        selected = "Basic")
       )
-    )
-  ),
+    ),
   
   
   # ----------------------------------------------------------
@@ -203,9 +200,6 @@ ui <- page_navbar(
   
   nav_panel(
     title = "Expert analysis",
-    
-    conditionalPanel(
-      condition = "input.expert_mode == true",
       
       div(
         class = "expert-dashboard",
@@ -410,18 +404,7 @@ ui <- page_navbar(
       )
     ),
     
-    # MESSAGE WHEN EXPERT MODE IS OFF
-    
-    conditionalPanel(
-      condition = "input.expert_mode != true",
-      
-      div(
-        class = "expert-off",
-        h3("Expert analysis"),
-        p("Switch on Expert mode to view the detailed trial dashboard.")
-      )
-    )
-  ),
+  # NAVIGATION BAR SETTINGS
   
   
   
@@ -430,6 +413,7 @@ ui <- page_navbar(
   # ----------------------------------------------------------
   
   title = "DIG Trial explorer",
+  id = "main_nav",
   
   theme = bs_theme(
     version = 5,
@@ -681,6 +665,24 @@ server <- function(input, output) {
         AGE <= input$age[2]
       )
     
+  })
+  
+  observeEvent(input$mode, {
+    if (input$mode == "Expert") {
+      nav_hide("main_nav", "Overview")
+      nav_hide("main_nav", "Patients")
+      nav_hide("main_nav", "Did it help?")
+      nav_hide("main_nav", "Who benefited?")
+      nav_show("main_nav", "Expert analysis")
+      nav_select("main_nav", "Expert analysis")
+    } else {
+      nav_show("main_nav", "Overview")
+      nav_show("main_nav", "Patients")
+      nav_show("main_nav", "Did it help?")
+      nav_show("main_nav", "Who benefited?")
+      nav_hide("main_nav", "Expert analysis")
+      nav_select("main_nav", "Overview")
+    }
   })
   
   
