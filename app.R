@@ -63,16 +63,20 @@ ui <- page_navbar(
       class = "overview-wrap",
       
       div(
-        style = "text-align: center; padding: 40px 0 24px;",
+        style = "padding: 40px 0 28px;",
+        
+        span("The DIG Trial", class = "hero-pill"),
         
         h1(
-          "Digoxin: an old medicine, a fair test",
-          style = "font-weight: 800; letter-spacing: 1px; margin-bottom: 16px;"
+          class = "hero-title",
+          span("Digoxin:", style = "font-style: italic;"),
+          " an old medicine, ",
+          span("a fair test", class = "hero-accent")
         ),
         
         p(
           "See who took part, what changed, and who benefited most.",
-          style = "color: #6b7280; font-size: 18px;"
+          class = "hero-sub"
         )
       ),
       
@@ -83,7 +87,7 @@ ui <- page_navbar(
       ),
       
       layout_columns(
-        col_widths = c(6, 6),
+        col_widths = c(5, 7),
         gap = "40px",
         
         tags$img(
@@ -96,30 +100,39 @@ ui <- page_navbar(
           width = 1,
           gap = "24px",
           
-          value_box(
+          value_box(height = "130px",
+                    showcase_layout = showcase_left_center(width = 0.2),
             title = "Patients in the trial",
             value = "6,800",
             showcase = bs_icon("people"),
-            theme = "primary"
+            div(class = "vb-deco", bs_icon("people-fill"))
           ),
           
-          value_box(
+          value_box(height = "130px",
+                    showcase_layout = showcase_left_center(width = 0.2),
             title = "Heart failure hospital stays",
-            value = "35% → 27%",
-            showcase = bs_icon("hospital"),
-            theme = "primary"
+            value = span(
+              style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
+              "35% → 27%",
+              span(class = "badge-down badge-right",
+                   span("↓", style = "font-size: 2.2em; font-weight: 700;"),
+                   span(span("8", class = "badge-num"), HTML("percentage<br>points")))
+            ),
+            showcase = bs_icon("hospital", style = "color: #0b5cbf;")
           ),
           
-          value_box(
+          value_box(height = "130px",
+                    class = "vb-wave",
+                    showcase_layout = showcase_left_center(width = 0.2),
             title = "Lower risk of hospital stay",
-            value = "23%",
-            showcase = bs_icon("heart-pulse"),
-            theme = "primary"
-          )
+            value = span("23% "),
+            showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
+          )  
         )
       )
     )
   ),
+
   
   
   # ----------------------------------------------------------
@@ -413,7 +426,7 @@ ui <- page_navbar(
   # NAVIGATION BAR SETTINGS
   # ----------------------------------------------------------
   
-  title = "DIG Trial explorer",
+  title = tagList(bs_icon("heart-pulse", style = "color: #0b5cbf;"), " DIG Trial explorer"),
   id = "main_nav",
   
   theme = bs_theme(
@@ -464,10 +477,70 @@ ui <- page_navbar(
       margin: 0 auto !important;
       padding: 0 24px 24px;
     }
+    .hero-pill {
+      display: inline-block; background: #dbe7fb; color: #0b5cbf;
+      font-weight: 600; font-size: 15px; padding: 6px 18px;
+      border-radius: 999px; margin-bottom: 18px;
+    }
+    .hero-title {
+      font-weight: 800; font-size: 3.4rem; color: #10204a;
+      letter-spacing: -0.5px; margin-bottom: 14px;
+    }
+    .hero-accent {
+      position: relative; font-style: italic; padding-right: 6px;
+      background: linear-gradient(90deg, #1d5fd6, #4a8af0);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero-accent::after {
+      content: ''; position: absolute; left: 10%; right: -15%; bottom: -6px;
+      height: 4px; border-radius: 50%;
+      background: linear-gradient(90deg, transparent, rgba(74, 138, 240, .55), transparent);
+    }
+    .hero-sub { color: #1e2a44; font-size: 20px; margin: 0; }
 
-    body {
-      background: #f4f7fb;
+      body {
+      background:
+        radial-gradient(circle at 10% 90%, rgba(11, 92, 191, .12), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(11, 92, 191, .10), transparent 35%),
+        #f4f7fb;
+      background-attachment: fixed;
       color: #253247;
+    }
+    .badge-down {
+      display: inline-flex; align-items: center; gap: 10px;
+      white-space: normal; text-align: left; line-height: 1.1;
+      background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #15803d;
+      border-radius: 18px; padding: 10px 16px;
+      font-size: 0.3em; font-weight: 600;
+      box-shadow: 0 4px 14px rgba(21, 128, 61, .15);
+    }
+    .badge-num { display: block; font-size: 2em; font-weight: 800; }
+    .vb-deco {
+      position: absolute; right: 20px; bottom: -28px;
+      font-size: 150px; line-height: 1; color: #0b5cbf; opacity: .18;
+      pointer-events: none;
+    }
+       .vb-wave {
+      background:
+        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 130%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M90 130 C170 120 210 70 290 62 S370 35 400 28 L400 130 Z%22 fill=%22rgba(59,130,246,0.12)%22/%3E%3Cpath d=%22M170 130 C240 122 280 92 330 88 S385 72 400 70 L400 130 Z%22 fill=%22rgba(59,130,246,0.20)%22/%3E%3C/svg%3E')
+          no-repeat right bottom / 100% 100%,
+        white !important;
+       }
+    
+    .bslib-value-box {
+      border-radius: 20px !important; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(30, 55, 90, .08);
+    }
+    .bslib-value-box .value-box-showcase { color: #0b5cbf; }
+    .bslib-value-box .value-box-showcase .bi { width: 60px; height: 60px; }
+    .bslib-value-box .value-box-value {
+      font-size: 2.8rem !important;
+      font-weight: 800;
+      color: #1e2a44;
+      line-height: 1.1;
+    }
+    .badge-right {
+      position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
     }
 
     .navbar {
