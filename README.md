@@ -24,4 +24,4 @@ Basic mode is designed for people with no medical or statistics background. To k
 
 ![Who benefited most? Results by age group](docs/images/benefit.png)
 
-Hover over any chart to see the exact numbers.
+- Live app: https://isla-yao.shinyapps.io/HDS5105-DIG-Trial-Shiny-App/
