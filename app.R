@@ -84,17 +84,23 @@ ui <- page_navbar(
         col_widths = c(5, 7),
         gap = "40px",
         
-        tags$img(
-          src = "banner.png",
-          style = "width: 100%; height: 100%; max-height: 440px;
-          object-fit: cover; border-radius: 12px;"
+        div(
+          class = "banner-wrap card-link",
+          onclick = "Shiny.setInputValue('go_expert', Math.random())",
+          tags$img(
+            src = "banner.png",
+            style = "width: 100%; height: 100%; max-height: 440px;
+            object-fit: cover; border-radius: 12px;"
+          ),
+          span(class = "read-more", "Read more", bs_icon("arrow-right"))
         ),
         
         layout_column_wrap(
           width = 1,
           gap = "24px",
           
-          value_box(height = "130px",
+          value_box(height = "130px", class = "card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Patients', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
             title = "Patients in the trial",
             value = "6,800",
@@ -102,7 +108,8 @@ ui <- page_navbar(
             div(class = "vb-deco", bs_icon("people-fill"))
           ),
           
-          value_box(height = "130px",
+          value_box(height = "130px", class = "card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Did it help?', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
             title = "Heart failure hospital stays",
             value = span(
@@ -116,7 +123,8 @@ ui <- page_navbar(
           ),
           
           value_box(height = "130px",
-                    class = "vb-wave",
+                    class = "vb-wave card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Who benefited?', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
             title = "Lower risk of hospital stay",
             value = span("23% "),
@@ -621,6 +629,20 @@ ui <- page_navbar(
     .tab-pane[data-value='Patients'] .modebar,
     .tab-pane[data-value='Did it help?'] .modebar,
     .tab-pane[data-value='Who benefited?'] .modebar { display: none !important; }
+    .card-link { cursor: pointer; transition: transform .2s, box-shadow .2s; }
+    .card-link:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(30, 55, 90, .16) !important;
+    }
+    .banner-wrap { position: relative; height: 100%; border-radius: 12px; }
+    .read-more {
+      position: absolute; left: 20px; bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, .92); color: #0b5cbf;
+      font-weight: 700; padding: 10px 20px; border-radius: 999px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .15); transition: all .2s;
+    }
+    .banner-wrap:hover .read-more { background: #0b5cbf; color: white; }
 
     .navbar {
       box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
@@ -848,7 +870,13 @@ server <- function(input, output, session) {
     updateCheckboxGroupInput(session, "race", selected = c(1, 2))
     updateSliderInput(session, "age", value = c(21, 90))
   })
+  observeEvent(input$go_page, {
+    nav_select("main_nav", input$go_page)
+  })
   
+  observeEvent(input$go_expert, {
+    updateRadioGroupButtons(session, "mode", selected = "Expert")
+  })
   
   # ----------------------------------------------------------
   # PATIENTS
