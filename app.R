@@ -102,15 +102,23 @@ ui <- page_navbar(
           value_box(height = "130px", class = "card-link",
                     onclick = "Shiny.setInputValue('go_page', 'Patients', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
+<<<<<<< HEAD
                     title = "Patients in the trial",
                     value = "6,800",
                     showcase = bs_icon("people"),
                     div(class = "vb-deco", bs_icon("people-fill"))
+=======
+            title = "Patients in the trial",
+            value = "6,800",
+            showcase = bs_icon("people"),
+            div(class = "vb-deco", bs_icon("people-fill"))
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
           ),
           
           value_box(height = "130px", class = "card-link",
                     onclick = "Shiny.setInputValue('go_page', 'Did it help?', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
+<<<<<<< HEAD
                     title = "Heart failure hospital stays",
                     value = span(
                       style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
@@ -120,20 +128,38 @@ ui <- page_navbar(
                            span(span("8", class = "badge-num"), HTML("percentage<br>points")))
                     ),
                     showcase = bs_icon("hospital", style = "color: #0b5cbf;")
+=======
+            title = "Heart failure hospital stays",
+            value = span(
+              style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
+              "35% → 27%",
+              span(class = "badge-down badge-right",
+                   span("↓", style = "font-size: 2.2em; font-weight: 700;"),
+                   span(span("8", class = "badge-num"), HTML("percentage<br>points")))
+            ),
+            showcase = bs_icon("hospital", style = "color: #0b5cbf;")
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
           ),
           
           value_box(height = "130px",
                     class = "vb-wave card-link",
                     onclick = "Shiny.setInputValue('go_page', 'Who benefited?', {priority: 'event'})",
                     showcase_layout = showcase_left_center(width = 0.2),
+<<<<<<< HEAD
                     title = "Lower risk of hospital stay",
                     value = span("23% "),
                     showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
+=======
+            title = "Lower risk of hospital stay",
+            value = span("23% "),
+            showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
           )  
         )
       )
     )
   ),
+
   
   
   
@@ -205,8 +231,13 @@ ui <- page_navbar(
       transform: translateY(-50%); margin-top: 8px;",
       radioGroupButtons(inputId = "mode", choices = c("Basic", "Expert"), 
                         selected = "Basic")
+<<<<<<< HEAD
     )
   ),
+=======
+      )
+    ),
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
   
   
   # ----------------------------------------------------------
@@ -216,9 +247,12 @@ ui <- page_navbar(
   
   nav_panel(
     title = "Expert analysis",
+<<<<<<< HEAD
     
     div(
       class = "expert-dashboard",
+=======
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
       
       div(
         class = "dashboard-header",
@@ -284,6 +318,7 @@ ui <- page_navbar(
             )
           )
         )
+<<<<<<< HEAD
       ),
       
       # SECOND ROW: AGE AND BMI
@@ -419,6 +454,12 @@ ui <- page_navbar(
       )
     )
   ),
+=======
+      )
+    ),
+    
+  # NAVIGATION BAR SETTINGS
+>>>>>>> 6a6b4e7da3e9f1766dad0400cc7cc7b557fbf20b
   
   # NAVIGATION BAR SETTINGS
   
