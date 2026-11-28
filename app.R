@@ -12,6 +12,8 @@ library(hrbrthemes)
 library(tidyr)
 library(bsicons)
 library(plotly)
+library(shinyWidgets)
+library(shinyjs)
 
 
 # ============================================================
@@ -61,63 +63,78 @@ ui <- page_navbar(
       class = "overview-wrap",
       
       div(
-        style = "text-align: center; padding: 40px 0 24px;",
+        style = "padding: 40px 0 44px;",
+        
+        span("The DIG Trial", class = "hero-pill"),
         
         h1(
-          "Digoxin: an old medicine, a fair test",
-          style = "font-weight: 800; letter-spacing: 1px; margin-bottom: 16px;"
+          class = "hero-title",
+          span("Digoxin:", style = "font-style: italic;"),
+          " an old medicine, ",
+          span("a fair test", class = "hero-accent")
         ),
         
         p(
           "See who took part, what changed, and who benefited most.",
-          style = "color: #6b7280; font-size: 18px;"
+          class = "hero-sub"
         )
       ),
       
-      hr(
-        style = "width: 100%; height: 12px; border: none;
-        border-radius: 7px; opacity: 1; margin: 0 0 40px;
-        background: linear-gradient(to right, #0b5cbf, rgba(11, 92, 191, 0));"
-      ),
-      
       layout_columns(
-        col_widths = c(6, 6),
+        col_widths = c(5, 7),
         gap = "40px",
         
-        tags$img(
-          src = "banner.png",
-          style = "width: 100%; height: 100%; max-height: 440px;
-          object-fit: cover; border-radius: 12px;"
+        div(
+          class = "banner-wrap card-link",
+          onclick = "Shiny.setInputValue('go_expert', Math.random())",
+          tags$img(
+            src = "banner.png",
+            style = "width: 100%; height: 100%; max-height: 440px;
+            object-fit: cover; border-radius: 12px;"
+          ),
+          span(class = "read-more", "Read more", bs_icon("arrow-right"))
         ),
         
         layout_column_wrap(
           width = 1,
           gap = "24px",
           
-          value_box(
-            title = "Patients in the trial",
-            value = "6,800",
-            showcase = bs_icon("people"),
-            theme = "primary"
+          value_box(height = "130px", class = "card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Patients', {priority: 'event'})",
+                    showcase_layout = showcase_left_center(width = 0.2),
+                    title = "Patients in the trial",
+                    value = "6,800",
+                    showcase = bs_icon("people"),
+                    div(class = "vb-deco", bs_icon("people-fill"))
           ),
           
-          value_box(
-            title = "Heart failure hospital stays",
-            value = "35% → 27%",
-            showcase = bs_icon("hospital"),
-            theme = "primary"
+          value_box(height = "130px", class = "card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Did it help?', {priority: 'event'})",
+                    showcase_layout = showcase_left_center(width = 0.2),
+                    title = "Heart failure hospital stays",
+                    value = span(
+                      style = "display: inline-flex; align-items: center; gap: 14px; white-space: nowrap;",
+                      "35% → 27%",
+                      span(class = "badge-down badge-right",
+                           span("↓", style = "font-size: 2.2em; font-weight: 700;"),
+                           span(span("8", class = "badge-num"), HTML("percentage<br>points")))
+                    ),
+                    showcase = bs_icon("hospital", style = "color: #0b5cbf;")
           ),
           
-          value_box(
-            title = "Lower risk of hospital stay",
-            value = "23%",
-            showcase = bs_icon("heart-pulse"),
-            theme = "primary"
-          )
+          value_box(height = "130px",
+                    class = "vb-wave card-link",
+                    onclick = "Shiny.setInputValue('go_page', 'Who benefited?', {priority: 'event'})",
+                    showcase_layout = showcase_left_center(width = 0.2),
+                    title = "Lower risk of hospital stay",
+                    value = span("23% "),
+                    showcase = bs_icon("heart-pulse", style = "color: #0b5cbf;")
+          )  
         )
       )
     )
   ),
+  
   
   
   # ----------------------------------------------------------
@@ -140,7 +157,7 @@ ui <- page_navbar(
       )
     ),
     
-    plotOutput("age_plot")
+    plotlyOutput("age_plot", height = "460px")
   ),
   
   
@@ -157,7 +174,7 @@ ui <- page_navbar(
       choices = c("Overall result", "Over time")
     ),
     
-    plotOutput("effect_plot")
+    plotlyOutput("effect_plot", height = "460px")
   ),
   
   
@@ -174,7 +191,7 @@ ui <- page_navbar(
       choices = c("By age", "By diabetes")
     ),
     
-    plotOutput("benefit_plot")
+    plotlyOutput("benefit_plot", height = "460px")
   ),
   
   
@@ -186,12 +203,8 @@ ui <- page_navbar(
     div(
       style = "position: absolute; right: 40px; top: 50%;
       transform: translateY(-50%); margin-top: 8px;",
-      
-      input_switch(
-        id = "expert_mode",
-        label = "Expert",
-        width = "auto"
-      )
+      radioGroupButtons(inputId = "mode", choices = c("Basic", "Expert"), 
+                        selected = "Basic")
     )
   ),
   
@@ -204,224 +217,210 @@ ui <- page_navbar(
   nav_panel(
     title = "Expert analysis",
     
-    conditionalPanel(
-      condition = "input.expert_mode == true",
+    div(
+      class = "expert-dashboard",
       
       div(
-        class = "expert-dashboard",
-        
-        div(
-          class = "dashboard-header",
-          h2("DIG Trial Dashboard"),
-          p("Explore patient characteristics, treatment outcomes and statistical findings.")
-        ),
-        
-        # KPI CARDS
-        
-        fluidRow(
-          column(
-            3,
-            div(
-              class = "dashboard-kpi",
-              div(class = "kpi-icon", bs_icon("people")),
-              h6("Total patients"),
-              h3(textOutput("kpi_patients"))
-            )
-          ),
-          column(
-            3,
-            div(
-              class = "dashboard-kpi",
-              div(class = "kpi-icon", bs_icon("hospital")),
-              h6("Hospitalisations"),
-              h3(textOutput("kpi_hospitalisations"))
-            )
-          ),
-          column(
-            3,
-            div(
-              class = "dashboard-kpi",
-              div(class = "kpi-icon", bs_icon("heart-pulse")),
-              h6("Overall mortality"),
-              h3(textOutput("kpi_mortality"))
-            )
-          ),
-          column(
-            3,
-            div(
-              class = "dashboard-kpi",
-              div(class = "kpi-icon", bs_icon("activity")),
-              h6("Complete records"),
-              h3(textOutput("kpi_complete"))
-            )
+        class = "dashboard-header",
+        h2("DIG Trial Dashboard"),
+        p("Explore patient characteristics, treatment outcomes and statistical findings.")
+      ),
+      
+      # KPI CARDS
+      
+      fluidRow(
+        column(
+          3,
+          div(
+            class = "dashboard-kpi",
+            div(class = "kpi-icon", bs_icon("people")),
+            h6("Total patients"),
+            h3(textOutput("kpi_patients"))
           )
         ),
-        
-        # FIRST ROW: TREATMENT OUTCOMES
-        
-        fluidRow(
-          column(
-            12,
-            div(
-              class = "dashboard-panel",
-              h4("Treatment outcomes"),
-              p("Comparison of observed outcomes in the Placebo and Digoxin groups."),
-              plotlyOutput("expert_outcome_plot", height = "380px"),
-              tableOutput("debug_outcome"),
-              div(
-                class = "chart-explanation",
-                "How to read this: The chart compares the percentage of patients experiencing each outcome. Lower percentages indicate fewer recorded events."
-              )
-            )
+        column(
+          3,
+          div(
+            class = "dashboard-kpi",
+            div(class = "kpi-icon", bs_icon("hospital")),
+            h6("Hospitalisations"),
+            h3(textOutput("kpi_hospitalisations"))
           )
         ),
-        
-        # SECOND ROW: AGE AND BMI
-        
-        fluidRow(
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Age distribution"),
-              plotlyOutput("expert_age_plot", height = "420px"),
-              div(
-                class = "chart-explanation",
-                "How to read this: The curves show where patients' ages are concentrated. Similar curves suggest similar age distributions."
-              )
-            )
-          ),
-          
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("BMI distribution"),
-              plotlyOutput("expert_bmi_plot", height = "420px"),
-              div(
-                class = "chart-explanation",
-                "How to read this: The violin width shows where values are concentrated. The box shows the middle half of BMI values."
-              )
-            )
+        column(
+          3,
+          div(
+            class = "dashboard-kpi",
+            div(class = "kpi-icon", bs_icon("heart-pulse")),
+            h6("Overall mortality"),
+            h3(textOutput("kpi_mortality"))
           )
         ),
-        
-        # THIRD ROW: DEMOGRAPHICS AND DATA QUALITY
-        
-        fluidRow(
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Patient characteristics"),
-              p("Distribution of patients across demographic categories."),
-              plotlyOutput("expert_demographic_plot", height = "420px"),
-              div(
-                class = "chart-explanation",
-                "How to read this: The percentages show the composition of each treatment group by sex, race, diabetes and hypertension."
-              )
-            )
-          ),
-          
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Data quality"),
-              h5(textOutput("expert_complete_records")),
-              plotlyOutput("expert_missing_plot", height = "420px"),
-              div(
-                class = "chart-explanation",
-                "How to read this: Longer bars indicate variables with more missing information. Variables with no missing values are excluded from this chart."
-              )
-            )
+        column(
+          3,
+          div(
+            class = "dashboard-kpi",
+            div(class = "kpi-icon", bs_icon("activity")),
+            h6("Complete records"),
+            h3(textOutput("kpi_complete"))
           )
-        ),
-        
-        # FOURTH ROW: TREATMENT TABLES
-        
-        fluidRow(
-          column(
-            6,
+        )
+      ),
+      
+      # FIRST ROW: TREATMENT OUTCOMES
+      
+      fluidRow(
+        column(
+          12,
+          div(
+            class = "dashboard-panel",
+            h4("Treatment outcomes"),
+            p("Comparison of observed outcomes in the Placebo and Digoxin groups."),
+            plotlyOutput("expert_outcome_plot", height = "380px"),
+            tableOutput("debug_outcome"),
             div(
-              class = "dashboard-panel",
-              h4("Outcome counts and percentages"),
-              tableOutput("expert_treatment_table")
-            )
-          ),
-          
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Treatment effect estimates"),
-              tableOutput("expert_effect_table"),
-              div(
-                class = "chart-explanation",
-                "Risk difference compares the two groups in percentage points. Relative risk compares their event risks."
-              )
-            )
-          )
-        ),
-        
-        # FIFTH ROW: STATISTICAL ANALYSIS
-        
-        fluidRow(
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Statistical evidence"),
-              plotOutput("expert_pvalue_plot", height = "280px"),
-              div(
-                class = "chart-explanation",
-                "How to read this: The dashed line marks p = 0.05. Points to the left are below this commonly used threshold."
-              )
-            )
-          ),
-          
-          column(
-            6,
-            div(
-              class = "dashboard-panel",
-              h4("Statistical test results"),
-              tableOutput("expert_tests_table"),
-              div(
-                class = "chart-explanation",
-                "A p-value below 0.05 is commonly considered statistically significant. It does not measure the size or importance of an effect."
-              )
-            )
-          )
-        ),
-        
-        # SIXTH ROW: SURVIVAL ANALYSIS
-        
-        fluidRow(
-          column(
-            12,
-            div(
-              class = "dashboard-panel",
-              h4("Survival analysis data checks"),
-              p("Follow-up time and censoring information must be verified before survival curves or a Cox model can be calculated."),
-              tableOutput("expert_survival_check")
+              class = "chart-explanation",
+              "How to read this: The chart compares the percentage of patients experiencing each outcome. Lower percentages indicate fewer recorded events."
             )
           )
         )
-      )
-    ),
-    
-    # MESSAGE WHEN EXPERT MODE IS OFF
-    
-    conditionalPanel(
-      condition = "input.expert_mode != true",
+      ),
       
-      div(
-        class = "expert-off",
-        h3("Expert analysis"),
-        p("Switch on Expert mode to view the detailed trial dashboard.")
+      # SECOND ROW: AGE AND BMI
+      
+      fluidRow(
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Age distribution"),
+            plotlyOutput("expert_age_plot", height = "420px"),
+            div(
+              class = "chart-explanation",
+              "How to read this: The curves show where patients' ages are concentrated. Similar curves suggest similar age distributions."
+            )
+          )
+        ),
+        
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("BMI distribution"),
+            plotlyOutput("expert_bmi_plot", height = "420px"),
+            div(
+              class = "chart-explanation",
+              "How to read this: The violin width shows where values are concentrated. The box shows the middle half of BMI values."
+            )
+          )
+        )
+      ),
+      
+      # THIRD ROW: DEMOGRAPHICS AND DATA QUALITY
+      
+      fluidRow(
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Patient characteristics"),
+            p("Distribution of patients across demographic categories."),
+            plotlyOutput("expert_demographic_plot", height = "420px"),
+            div(
+              class = "chart-explanation",
+              "How to read this: The percentages show the composition of each treatment group by sex, race, diabetes and hypertension."
+            )
+          )
+        ),
+        
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Data quality"),
+            h5(textOutput("expert_complete_records")),
+            plotlyOutput("expert_missing_plot", height = "420px"),
+            div(
+              class = "chart-explanation",
+              "How to read this: Longer bars indicate variables with more missing information. Variables with no missing values are excluded from this chart."
+            )
+          )
+        )
+      ),
+      
+      # FOURTH ROW: TREATMENT TABLES
+      
+      fluidRow(
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Outcome counts and percentages"),
+            tableOutput("expert_treatment_table")
+          )
+        ),
+        
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Treatment effect estimates"),
+            tableOutput("expert_effect_table"),
+            div(
+              class = "chart-explanation",
+              "Risk difference compares the two groups in percentage points. Relative risk compares their event risks."
+            )
+          )
+        )
+      ),
+      
+      # FIFTH ROW: STATISTICAL ANALYSIS
+      
+      fluidRow(
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Statistical evidence"),
+            plotOutput("expert_pvalue_plot", height = "280px"),
+            div(
+              class = "chart-explanation",
+              "How to read this: The dashed line marks p = 0.05. Points to the left are below this commonly used threshold."
+            )
+          )
+        ),
+        
+        column(
+          6,
+          div(
+            class = "dashboard-panel",
+            h4("Statistical test results"),
+            tableOutput("expert_tests_table"),
+            div(
+              class = "chart-explanation",
+              "A p-value below 0.05 is commonly considered statistically significant. It does not measure the size or importance of an effect."
+            )
+          )
+        )
+      ),
+      
+      # SIXTH ROW: SURVIVAL ANALYSIS
+      
+      fluidRow(
+        column(
+          12,
+          div(
+            class = "dashboard-panel",
+            h4("Survival analysis data checks"),
+            p("Follow-up time and censoring information must be verified before survival curves or a Cox model can be calculated."),
+            tableOutput("expert_survival_check")
+          )
+        )
       )
     )
   ),
+  
+  # NAVIGATION BAR SETTINGS
   
   
   
@@ -429,7 +428,8 @@ ui <- page_navbar(
   # NAVIGATION BAR SETTINGS
   # ----------------------------------------------------------
   
-  title = "DIG Trial explorer",
+  title = tagList(bs_icon("heart-pulse", style = "color: #0b5cbf;"), " DIG Trial explorer"),
+  id = "main_nav",
   
   theme = bs_theme(
     version = 5,
@@ -443,7 +443,7 @@ ui <- page_navbar(
     collapsible = FALSE
   ),
   
-  header = tags$style("
+  header = tagList(useShinyjs(), tags$style("
 
     .navbar-brand {
       font-weight: 800;
@@ -479,11 +479,170 @@ ui <- page_navbar(
       margin: 0 auto !important;
       padding: 0 24px 24px;
     }
+    .hero-pill {
+      display: inline-block; background: #dbe7fb; color: #0b5cbf;
+      font-weight: 600; font-size: 15px; padding: 6px 18px;
+      border-radius: 999px; margin-bottom: 18px;
+    }
+    .hero-title {
+      font-weight: 800; font-size: 3rem; color: #10204a;
+      letter-spacing: -0.5px; margin-bottom: 14px;
+    }
+    .hero-accent {
+      position: relative; font-style: italic; padding-right: 6px;
+      background: linear-gradient(90deg, #1d5fd6, #4a8af0);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .hero-accent::after {
+      content: ''; position: absolute; left: 10%; right: -15%; bottom: -6px;
+      height: 4px; border-radius: 50%;
+      background: linear-gradient(90deg, transparent, rgba(74, 138, 240, .55), transparent);
+    }
+    .hero-sub { color: #1e2a44; font-size: 20px; margin: 0; }
 
-    body {
-      background: #f4f7fb;
+      body {
+      background:
+        radial-gradient(circle at 10% 90%, rgba(11, 92, 191, .12), transparent 40%),
+        radial-gradient(circle at 90% 10%, rgba(11, 92, 191, .10), transparent 35%),
+        #f4f7fb;
+      background-attachment: fixed;
       color: #253247;
     }
+    .badge-down {
+      display: inline-flex; align-items: center; gap: 10px;
+      white-space: normal; text-align: left; line-height: 1.1;
+      background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #15803d;
+      border-radius: 18px; padding: 10px 16px;
+      font-size: 0.3em; font-weight: 600;
+      box-shadow: 0 4px 14px rgba(21, 128, 61, .15);
+    }
+    .badge-num { display: block; font-size: 2em; font-weight: 800; }
+    .vb-deco {
+      position: absolute; right: 20px; bottom: -28px;
+      font-size: 150px; line-height: 1; color: #0b5cbf; opacity: .18;
+      pointer-events: none;
+    }
+       .vb-wave {
+      background:
+        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 130%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M90 130 C170 120 210 70 290 62 S370 35 400 28 L400 130 Z%22 fill=%22rgba(59,130,246,0.12)%22/%3E%3Cpath d=%22M170 130 C240 122 280 92 330 88 S385 72 400 70 L400 130 Z%22 fill=%22rgba(59,130,246,0.20)%22/%3E%3C/svg%3E')
+          no-repeat right bottom / 100% 100%,
+        white !important;
+       }
+    
+    .bslib-value-box {
+      border-radius: 20px !important; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(30, 55, 90, .08);
+    }
+    .bslib-value-box .value-box-showcase { color: #0b5cbf; }
+    .bslib-value-box .value-box-showcase .bi { width: 60px; height: 60px; }
+    .bslib-value-box .value-box-value {
+      font-size: 2.8rem !important;
+      font-weight: 800;
+      color: #1e2a44;
+      line-height: 1.1;
+    }
+    .badge-right {
+      position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
+    }
+        /* SIDEBAR */
+    #filters {
+      background:
+        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 140%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M0 140 L0 90 C60 60 120 110 190 85 S270 50 300 60 L300 140 Z%22 fill=%22rgba(59,130,246,0.10)%22/%3E%3Cpath d=%22M0 140 L0 115 C70 95 140 130 210 108 S280 90 300 95 L300 140 Z%22 fill=%22rgba(59,130,246,0.16)%22/%3E%3C/svg%3E')
+          no-repeat left bottom / 100% 140px,
+        linear-gradient(180deg, #f8fbff 0%, #eaf2fd 100%) !important;
+      border-right: none !important;
+    }
+    #filters .sidebar-content { background: transparent !important; position: relative; }
+    .sidebar-heart {
+      position: absolute; right: -20px; bottom: 10px; z-index: 0;
+      font-size: 180px; line-height: 1; color: #0b5cbf; opacity: .08;
+      pointer-events: none;
+    }
+    .sidebar .accordion { position: relative; z-index: 1; }
+    .sidebar .shiny-input-container { margin-bottom: 0 !important; }
+    .sidebar .shiny-options-group {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .sidebar .checkbox { margin: 0; }
+    .sidebar .checkbox label {
+      display: flex; align-items: center; gap: 10px; margin: 0;
+    }
+    .sidebar .checkbox label,
+    .sidebar .checkbox span { color: #10204a !important; font-size: 1.05rem; }
+    .sidebar input[type='checkbox'] {
+      width: 1.25em; height: 1.25em; margin: 0; accent-color: #1d6ae5;
+    }
+    .sidebar input[type='checkbox']:checked {
+      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
+    }
+    .filter-head {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.4rem; font-weight: 800; color: #10204a; margin: 8px 0 12px;
+    }
+    .filter-head .bi { color: #0b5cbf; }
+    .filter-head a { font-size: 0.95rem; font-weight: 500; color: #6b7280; text-decoration: none; }
+    .sidebar .accordion { --bs-accordion-border-width: 0; --bs-accordion-bg: transparent; }
+    .sidebar .accordion-item {
+      background: white; border-radius: 16px !important; overflow: hidden;
+      margin-bottom: 14px; box-shadow: 0 6px 18px rgba(30, 55, 90, .07);
+    }
+    .sidebar .accordion-button,
+    .sidebar .accordion-button:not(.collapsed) {
+      background: white; color: #10204a; font-weight: 700; font-size: 1.1rem;
+      box-shadow: none;
+    }
+    .sidebar .accordion-icon { color: #0b5cbf; font-size: 1.3em; }
+    .sidebar .accordion-body {
+      background: #f3f7fd; border-radius: 12px; margin: 0 12px 12px; padding: 16px 18px;
+    }
+    .sidebar .form-check-input {
+      width: 1.25em; height: 1.25em; border-radius: 6px;
+    }
+    .sidebar .form-check-input:checked {
+      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
+    }
+    .sidebar .form-check-label { font-size: 1.05rem; color: #10204a !important; }
+    .irs--shiny .irs-bar {
+      background: linear-gradient(90deg, #60a5fa, #0b5cbf); border: none;
+    }
+    .irs--shiny .irs-handle { background: white; border: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+    .irs--shiny .irs-from, .irs--shiny .irs-to, .irs--shiny .irs-single {
+      background: #0b5cbf; border-radius: 8px; font-weight: 600; padding: 3px 8px;
+    }
+
+    /* BASIC / EXPERT TOGGLE */
+    #mode .btn-group-container-sw {
+      border: 1.5px solid #2f6fe0; border-radius: 999px; overflow: hidden;
+      background: white; box-shadow: 0 4px 14px rgba(30, 55, 90, .10);
+    }
+    #mode .btn {
+      border: none !important; border-radius: 0 !important;
+      background: white; color: #1d3f8a; font-weight: 600; padding: 8px 26px;
+    }
+    #mode .btn.active,
+    #mode .btn:has(input:checked),
+    #mode .btn-check:checked + .btn {
+      background: linear-gradient(90deg, #3b7bea, #1d4fb8) !important;
+      color: white !important;
+    }
+    #mode .btn:focus { box-shadow: none; }
+    .tab-pane[data-value='Patients'] .modebar,
+    .tab-pane[data-value='Did it help?'] .modebar,
+    .tab-pane[data-value='Who benefited?'] .modebar { display: none !important; }
+    .card-link { cursor: pointer; transition: transform .2s, box-shadow .2s; }
+    .card-link:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 30px rgba(30, 55, 90, .16) !important;
+    }
+    .banner-wrap { position: relative; height: 100%; border-radius: 12px; }
+    .read-more {
+      position: absolute; left: 20px; bottom: 20px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255, 255, 255, .92); color: #0b5cbf;
+      font-weight: 700; padding: 10px 20px; border-radius: 999px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, .15); transition: all .2s;
+    }
+    .banner-wrap:hover .read-more { background: #0b5cbf; color: white; }
 
     .navbar {
       box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
@@ -627,36 +786,38 @@ ui <- page_navbar(
       }
     }
 
-  "),
+  ")),
   
   # ----------------------------------------------------------
   # SIDEBAR FILTERS
   # ----------------------------------------------------------
-  
   sidebar = sidebar(
+    id = "filters",
     open = "closed",
+    width = 300,
     
-    checkboxGroupInput(
-      inputId = "sex",
-      label = "Sex",
-      choices = c("Male" = 1, "Female" = 2),
-      selected = c(1, 2)
+    div(
+      class = "filter-head",
+      span(bs_icon("funnel"), " Filters"),
+      actionLink("reset_filters", tagList(bs_icon("arrow-counterclockwise"), " Reset"))
     ),
     
-    checkboxGroupInput(
-      inputId = "race",
-      label = "Race",
-      choices = c("White" = 1, "Non-white" = 2),
-      selected = c(1, 2)
+    accordion(
+      open = TRUE,
+      accordion_panel(
+        title = "Sex", icon = bs_icon("gender-male"),
+        checkboxGroupInput("sex", NULL, choices = c("Male" = 1, "Female" = 2), selected = c(1, 2))
+      ),
+      accordion_panel(
+        title = "Race", icon = bs_icon("people"),
+        checkboxGroupInput("race", NULL, choices = c("White" = 1, "Non-white" = 2), selected = c(1, 2))
+      ),
+      accordion_panel(
+        title = "Age", icon = bs_icon("calendar3"),
+        sliderInput("age", NULL, min = 21, max = 90, value = c(21, 90))
+      )
     ),
-    
-    sliderInput(
-      inputId = "age",
-      label = "Age",
-      min = 21,
-      max = 90,
-      value = c(21, 90)
-    )
+    div(class = "sidebar-heart", bs_icon("heart-pulse"))
   )
 )
 
@@ -665,7 +826,7 @@ ui <- page_navbar(
 # 4. SERVER
 # ============================================================
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # ----------------------------------------------------------
   # COMMON FILTERED DATA
@@ -683,11 +844,135 @@ server <- function(input, output) {
     
   })
   
+  observeEvent(input$mode, {
+    if (input$mode == "Expert") {
+      nav_hide("main_nav", "Overview")
+      nav_hide("main_nav", "Patients")
+      nav_hide("main_nav", "Did it help?")
+      nav_hide("main_nav", "Who benefited?")
+      nav_show("main_nav", "Expert analysis")
+      nav_select("main_nav", "Expert analysis")
+      toggle_sidebar("filters", open = FALSE)
+      shinyjs::hide(selector = ".collapse-toggle")
+    } else {
+      nav_show("main_nav", "Overview")
+      nav_show("main_nav", "Patients")
+      nav_show("main_nav", "Did it help?")
+      nav_show("main_nav", "Who benefited?")
+      nav_hide("main_nav", "Expert analysis")
+      nav_select("main_nav", "Overview")
+      shinyjs::show(selector = ".collapse-toggle")
+    }
+  })
+  
+  observeEvent(input$reset_filters, {
+    updateCheckboxGroupInput(session, "sex", selected = c(1, 2))
+    updateCheckboxGroupInput(session, "race", selected = c(1, 2))
+    updateSliderInput(session, "age", value = c(21, 90))
+  })
+  observeEvent(input$go_page, {
+    nav_select("main_nav", input$go_page)
+  })
+  
+  observeEvent(input$go_expert, {
+    updateRadioGroupButtons(session, "mode", selected = "Expert")
+  })
   
   # ----------------------------------------------------------
   # PATIENTS
   # ----------------------------------------------------------
   
+  
+  output$age_plot <- renderPlotly({
+    filtered <- filtered_data()
+    if (input$patient_chart == "Age") {
+      Age <- filtered %>%
+        ggplot( aes(x=AGE, fill=group)) +
+        geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(20, 95)) +
+        labs(title = "How old were the patients?",
+             x = "Age (years)",
+             y = "Number of patients",
+             fill = "")
+      ggplotly(Age) %>% style(hovertemplate = "Age: %{x}<br>Patients: %{y}<extra>%{fullData.name}</extra>")
+    } else if (input$patient_chart == "BMI"){
+      Bmi <- filtered %>%
+        ggplot( aes(x=BMI, fill=group)) +
+        geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 2, na.rm = TRUE) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(10, 60)) +
+        labs(title = "Body weight of the patients",
+             x = "BMI (kg/m²)",
+             y = "Number of patients",
+             fill = "")
+      ggplotly(Bmi) %>% style(hovertemplate = "BMI: %{x}<br>Patients: %{y}<extra>%{fullData.name}</extra>")
+    } else if (input$patient_chart == "Heart rate"){ 
+      HR <- filtered %>%
+        ggplot( aes(x=HEARTRTE, fill=group)) +
+        geom_histogram( color="#e9ecef", alpha=0.6, position = 'identity', binwidth = 5, na.rm = TRUE) +
+        scale_fill_manual(values=c("#8ec5ff", "#1e3a8a")) +
+        theme_ipsum() +
+        coord_cartesian(xlim = c(30, 160)) +
+        labs(title = "What were the patients' heart rates?",
+             x = "Heart rate (beats/min)",
+             y = "Number of patients",
+             fill = "")
+      ggplotly(HR) %>% style(hovertemplate = "Heart rate: %{x} bpm<br>Patients: %{y}<extra>%{fullData.name}</extra>")
+    }else if (input$patient_chart == "Blood pressure"){
+      BP <- ggplot(filtered) +
+        geom_histogram( aes(x = SYSBP, y = after_stat(count), fill= group), color="#e9ecef",alpha = 0.6, position = 'identity', binwidth = 10, na.rm = TRUE) +
+        geom_histogram( aes(x = DIABP, y = -after_stat(count), fill= group), color="#e9ecef", alpha = 0.6, position = 'identity', binwidth = 10, na.rm = TRUE) +
+        theme_ipsum() +
+        labs(title = "Blood pressure was almost identical in both groups",
+             x = "Blood pressure(mmHg)",
+             y = "Number of patients",
+             fill = "") +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
+        annotate("text", x = 190, y = 300, label = "Systolic") +
+        annotate("text", x = 40, y = -300, label = "Diastolic") +
+        scale_y_continuous(labels = abs)
+      BP
+    }else if (input$patient_chart == "Race"){
+      filtered$race <- factor(filtered$RACE, levels = c(1, 2), labels = c("White", "Non-white"))
+      Race <- ggplot(filtered, aes(x = race, fill = group)) +
+        geom_bar(position = "dodge", color = "#e9ecef", width = 0.4) +
+        coord_flip() +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
+        theme_ipsum() + theme(legend.position = "bottom") +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        labs(title = "Ethnic background of the patients",
+             x = "",
+             y = "Number of patients",
+             fill = "")
+      ggplotly(Race) %>% style(hovertemplate = "%{y}<br>Patients: %{x}<extra>%{fullData.name}</extra>")
+    }else if (input$patient_chart == "Medical history"){
+      history <- filtered %>%
+        group_by(group) %>%
+        summarise(
+          `Prior heart attack`  = mean(PREVMI,   na.rm = TRUE) * 100,
+          `Angina`              = mean(ANGINA,   na.rm = TRUE) * 100,
+          `Diabetes`            = mean(DIABETES, na.rm = TRUE) * 100,
+          `High blood pressure` = mean(HYPERTEN, na.rm = TRUE) * 100
+        )
+      history_long <- history %>%
+        pivot_longer(cols = -group, names_to = "condition", values_to = "percent")
+      
+      History <- ggplot(history_long, aes(x = reorder(condition, percent), y = percent, fill = group)) +
+        geom_col(position = "dodge", color = "#e9ecef", width = 0.4) +
+        coord_flip() +
+        scale_fill_manual(values = c("#8ec5ff", "#1e3a8a")) +
+        theme_ipsum() +
+        theme(legend.position = "bottom") +
+        guides(fill = guide_legend(reverse = TRUE)) +
+        labs(title = "Medical history of the patients",
+             x = "",
+             y = "Percentage of patients (%)",
+             fill = "")
+      ggplotly(History) %>% style(hovertemplate = "%{y}<br>%{x:.1f}% of patients<extra>%{fullData.name}</extra>")  }  
+  })
   
   output$expert_age_plot <- renderPlotly({
     
@@ -778,7 +1063,7 @@ server <- function(input, output) {
   # DID IT HELP?
   # ----------------------------------------------------------
   
-  output$effect_plot <- renderPlot({
+  output$effect_plot <- renderPlotly({
     
     filtered <- filtered_data()
     
@@ -800,7 +1085,7 @@ server <- function(input, output) {
           values_to = "percent"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         effect_long,
         aes(x = outcome, y = percent, fill = group)
       ) +
@@ -816,7 +1101,7 @@ server <- function(input, output) {
           width = 0.4
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         theme_ipsum() +
         theme(
@@ -830,7 +1115,7 @@ server <- function(input, output) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
       
     } else if (input$effect_chart == "Over time") {
       
@@ -853,7 +1138,7 @@ server <- function(input, output) {
           values_to = "percent"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         by_year_long,
         aes(x = time, y = percent, fill = group)
       ) +
@@ -869,7 +1154,7 @@ server <- function(input, output) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
@@ -884,7 +1169,7 @@ server <- function(input, output) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
     }
     
   })
@@ -894,7 +1179,7 @@ server <- function(input, output) {
   # WHO BENEFITED?
   # ----------------------------------------------------------
   
-  output$benefit_plot <- renderPlot({
+  output$benefit_plot <- renderPlotly({
     
     filtered <- filtered_data()
     
@@ -907,7 +1192,7 @@ server <- function(input, output) {
           .groups = "drop"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         benefit,
         aes(x = age_group, y = percent, fill = group)
       ) +
@@ -923,7 +1208,7 @@ server <- function(input, output) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
@@ -941,7 +1226,7 @@ server <- function(input, output) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
       
     } else if (input$benefit_chart == "By diabetes") {
       
@@ -952,7 +1237,7 @@ server <- function(input, output) {
           .groups = "drop"
         )
       
-      ggplot(
+      ggplotly(ggplot(
         benefit_diab,
         aes(x = diabetes, y = percent, fill = group)
       ) +
@@ -968,7 +1253,7 @@ server <- function(input, output) {
           vjust = -0.5
         ) +
         scale_fill_manual(
-          values = c("#6e03ab", "#0ac219")
+          values = c("#8ec5ff", "#1e3a8a")
         ) +
         scale_y_continuous(
           expand = expansion(mult = c(0, 0.1))
@@ -983,7 +1268,7 @@ server <- function(input, output) {
           x = "",
           y = "Percentage of patients (%)",
           fill = ""
-        )
+        )) %>% style(hovertemplate = "%{x}<br>%{y:.1f}% of patients<extra>%{fullData.name}</extra>")
     }
     
   })
