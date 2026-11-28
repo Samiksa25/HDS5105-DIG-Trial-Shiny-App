@@ -63,7 +63,7 @@ ui <- page_navbar(
       class = "overview-wrap",
       
       div(
-        style = "padding: 40px 0 28px;",
+        style = "padding: 40px 0 44px;",
         
         span("The DIG Trial", class = "hero-pill"),
         
@@ -78,12 +78,6 @@ ui <- page_navbar(
           "See who took part, what changed, and who benefited most.",
           class = "hero-sub"
         )
-      ),
-      
-      hr(
-        style = "width: 100%; height: 12px; border: none;
-        border-radius: 7px; opacity: 1; margin: 0 0 40px;
-        background: linear-gradient(to right, #0b5cbf, rgba(11, 92, 191, 0));"
       ),
       
       layout_columns(
@@ -155,7 +149,7 @@ ui <- page_navbar(
       )
     ),
     
-    plotOutput("age_plot")
+    plotlyOutput("age_plot", height = "460px")
   ),
   
   
@@ -172,7 +166,7 @@ ui <- page_navbar(
       choices = c("Overall result", "Over time")
     ),
     
-    plotOutput("effect_plot")
+    plotlyOutput("effect_plot", height = "460px")
   ),
   
   
@@ -189,7 +183,7 @@ ui <- page_navbar(
       choices = c("By age", "By diabetes")
     ),
     
-    plotOutput("benefit_plot")
+    plotlyOutput("benefit_plot", height = "460px")
   ),
   
   
@@ -483,7 +477,7 @@ ui <- page_navbar(
       border-radius: 999px; margin-bottom: 18px;
     }
     .hero-title {
-      font-weight: 800; font-size: 3.4rem; color: #10204a;
+      font-weight: 800; font-size: 3rem; color: #10204a;
       letter-spacing: -0.5px; margin-bottom: 14px;
     }
     .hero-accent {
@@ -542,6 +536,88 @@ ui <- page_navbar(
     .badge-right {
       position: absolute; right: 24px; top: 50%; transform: translateY(-50%);
     }
+        /* SIDEBAR */
+    #filters {
+      background:
+        url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 300 140%22 preserveAspectRatio=%22none%22%3E%3Cpath d=%22M0 140 L0 90 C60 60 120 110 190 85 S270 50 300 60 L300 140 Z%22 fill=%22rgba(59,130,246,0.10)%22/%3E%3Cpath d=%22M0 140 L0 115 C70 95 140 130 210 108 S280 90 300 95 L300 140 Z%22 fill=%22rgba(59,130,246,0.16)%22/%3E%3C/svg%3E')
+          no-repeat left bottom / 100% 140px,
+        linear-gradient(180deg, #f8fbff 0%, #eaf2fd 100%) !important;
+      border-right: none !important;
+    }
+    #filters .sidebar-content { background: transparent !important; position: relative; }
+    .sidebar-heart {
+      position: absolute; right: -20px; bottom: 10px; z-index: 0;
+      font-size: 180px; line-height: 1; color: #0b5cbf; opacity: .08;
+      pointer-events: none;
+    }
+    .sidebar .accordion { position: relative; z-index: 1; }
+    .sidebar .shiny-input-container { margin-bottom: 0 !important; }
+    .sidebar .shiny-options-group {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .sidebar .checkbox { margin: 0; }
+    .sidebar .checkbox label {
+      display: flex; align-items: center; gap: 10px; margin: 0;
+    }
+    .sidebar .checkbox label,
+    .sidebar .checkbox span { color: #10204a !important; font-size: 1.05rem; }
+    .sidebar input[type='checkbox'] {
+      width: 1.25em; height: 1.25em; margin: 0; accent-color: #1d6ae5;
+    }
+    .sidebar input[type='checkbox']:checked {
+      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
+    }
+    .filter-head {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 1.4rem; font-weight: 800; color: #10204a; margin: 8px 0 12px;
+    }
+    .filter-head .bi { color: #0b5cbf; }
+    .filter-head a { font-size: 0.95rem; font-weight: 500; color: #6b7280; text-decoration: none; }
+    .sidebar .accordion { --bs-accordion-border-width: 0; --bs-accordion-bg: transparent; }
+    .sidebar .accordion-item {
+      background: white; border-radius: 16px !important; overflow: hidden;
+      margin-bottom: 14px; box-shadow: 0 6px 18px rgba(30, 55, 90, .07);
+    }
+    .sidebar .accordion-button,
+    .sidebar .accordion-button:not(.collapsed) {
+      background: white; color: #10204a; font-weight: 700; font-size: 1.1rem;
+      box-shadow: none;
+    }
+    .sidebar .accordion-icon { color: #0b5cbf; font-size: 1.3em; }
+    .sidebar .accordion-body {
+      background: #f3f7fd; border-radius: 12px; margin: 0 12px 12px; padding: 16px 18px;
+    }
+    .sidebar .form-check-input {
+      width: 1.25em; height: 1.25em; border-radius: 6px;
+    }
+    .sidebar .form-check-input:checked {
+      background-color: #1d6ae5 !important; border-color: #1d6ae5 !important;
+    }
+    .sidebar .form-check-label { font-size: 1.05rem; color: #10204a !important; }
+    .irs--shiny .irs-bar {
+      background: linear-gradient(90deg, #60a5fa, #0b5cbf); border: none;
+    }
+    .irs--shiny .irs-handle { background: white; border: none; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+    .irs--shiny .irs-from, .irs--shiny .irs-to, .irs--shiny .irs-single {
+      background: #0b5cbf; border-radius: 8px; font-weight: 600; padding: 3px 8px;
+    }
+
+    /* BASIC / EXPERT TOGGLE */
+    #mode .btn-group-container-sw {
+      border: 1.5px solid #2f6fe0; border-radius: 999px; overflow: hidden;
+      background: white; box-shadow: 0 4px 14px rgba(30, 55, 90, .10);
+    }
+    #mode .btn {
+      border: none !important; border-radius: 0 !important;
+      background: white; color: #1d3f8a; font-weight: 600; padding: 8px 26px;
+    }
+    #mode .btn.active,
+    #mode .btn:has(input:checked),
+    #mode .btn-check:checked + .btn {
+      background: linear-gradient(90deg, #3b7bea, #1d4fb8) !important;
+      color: white !important;
+    }
+    #mode .btn:focus { box-shadow: none; }
 
     .navbar {
       box-shadow: 0 2px 12px rgba(30, 55, 90, .08);
@@ -690,32 +766,33 @@ ui <- page_navbar(
   # ----------------------------------------------------------
   # SIDEBAR FILTERS
   # ----------------------------------------------------------
-  
   sidebar = sidebar(
     id = "filters",
     open = "closed",
+    width = 300,
     
-    checkboxGroupInput(
-      inputId = "sex",
-      label = "Sex",
-      choices = c("Male" = 1, "Female" = 2),
-      selected = c(1, 2)
+    div(
+      class = "filter-head",
+      span(bs_icon("funnel"), " Filters"),
+      actionLink("reset_filters", tagList(bs_icon("arrow-counterclockwise"), " Reset"))
     ),
     
-    checkboxGroupInput(
-      inputId = "race",
-      label = "Race",
-      choices = c("White" = 1, "Non-white" = 2),
-      selected = c(1, 2)
+    accordion(
+      open = TRUE,
+      accordion_panel(
+        title = "Sex", icon = bs_icon("gender-male"),
+        checkboxGroupInput("sex", NULL, choices = c("Male" = 1, "Female" = 2), selected = c(1, 2))
+      ),
+      accordion_panel(
+        title = "Race", icon = bs_icon("people"),
+        checkboxGroupInput("race", NULL, choices = c("White" = 1, "Non-white" = 2), selected = c(1, 2))
+      ),
+      accordion_panel(
+        title = "Age", icon = bs_icon("calendar3"),
+        sliderInput("age", NULL, min = 21, max = 90, value = c(21, 90))
+      )
     ),
-    
-    sliderInput(
-      inputId = "age",
-      label = "Age",
-      min = 21,
-      max = 90,
-      value = c(21, 90)
-    )
+    div(class = "sidebar-heart", bs_icon("heart-pulse"))
   )
 )
 
@@ -724,7 +801,7 @@ ui <- page_navbar(
 # 4. SERVER
 # ============================================================
 
-server <- function(input, output) {
+server <- function(input, output, session) {
   
   # ----------------------------------------------------------
   # COMMON FILTERED DATA
@@ -763,13 +840,19 @@ server <- function(input, output) {
     }
   })
   
+  observeEvent(input$reset_filters, {
+    updateCheckboxGroupInput(session, "sex", selected = c(1, 2))
+    updateCheckboxGroupInput(session, "race", selected = c(1, 2))
+    updateSliderInput(session, "age", value = c(21, 90))
+  })
+  
   
   # ----------------------------------------------------------
   # PATIENTS
   # ----------------------------------------------------------
   
   
-  output$age_plot <- renderPlot({
+  output$age_plot <- renderPlotly({
     filtered <- filtered_data()
     if (input$patient_chart == "Age") {
       Age <- filtered %>%
@@ -817,8 +900,8 @@ server <- function(input, output) {
              y = "Number of patients",
              fill = "") +
         scale_fill_manual(values = c("#6e03ab", "#0ac219")) +
-        annotate("label", x = 190, y = 300, label = "Systolic") +
-        annotate("label", x = 40, y = -300, label = "Diastolic") +
+        annotate("text", x = 190, y = 300, label = "Systolic") +
+        annotate("text", x = 40, y = -300, label = "Diastolic") +
         scale_y_continuous(labels = abs)
       BP
     }else if (input$patient_chart == "Race"){
